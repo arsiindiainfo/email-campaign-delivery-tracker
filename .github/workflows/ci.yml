@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - run: npm run test:cov
+      - run: npm run test:e2e
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - run: npm run test -- --run
+
+  docker-images:
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f infrastructure/docker/Dockerfile.api -t email-campaign-tracker-api .
+      - run: docker build -f infrastructure/docker/Dockerfile.worker -t email-campaign-tracker-worker .
+      - run: docker build -f infrastructure/docker/Dockerfile.web -t email-campaign-tracker-web .
+
+  license-header-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify every source file carries the Arsi India Info copyright header (§31.2)
+        run: |
+          missing=0
+          for f in $(git ls-files 'backend/src/**/*.ts' 'frontend/src/**/*.ts' 'frontend/src/**/*.tsx'); do
+            if ! head -n 3 "$f" | grep -q "Arsi India Info"; then
+              echo "Missing copyright header: $f"
+              missing=1
+            fi
+          done
+          exit $missing

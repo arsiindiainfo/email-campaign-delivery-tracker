@@ -1,0 +1,73 @@
+name: email-campaign-delivery-tracker
+
+services:
+  mongo:
+    image: mongo:7
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    ports: ["27017:27017"]
+    volumes: ["mongo-data:/data/db"]
+    healthcheck:
+      test: >
+        mongosh --quiet --eval
+        "try { rs.status() } catch (e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo:27017'}]}) }"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    ports:
+      - "1025:1025" # SMTP — EmailProvider sends here in dev, never to a real inbox (§27)
+      - "8025:8025" # Web UI — stand-in inbox for the demo script (§32)
+
+  localstack:
+    image: localstack/localstack:3
+    ports: ["4566:4566"]
+    environment:
+      SERVICES: sqs,s3,sns
+      DEFAULT_REGION: us-east-1
+    volumes:
+      - "./localstack/init-aws.sh:/etc/localstack/init/ready.d/init-aws.sh"
+      - "localstack-data:/var/lib/localstack"
+
+  api:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/Dockerfile.api
+    ports: ["3000:3000"]
+    env_file: [../backend/.env.example]
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/email-campaign-tracker?replicaSet=rs0
+      SMTP_HOST: mailhog
+      AWS_ENDPOINT: http://localstack:4566
+    depends_on:
+      mongo: { condition: service_healthy }
+      mailhog: { condition: service_started }
+      localstack: { condition: service_started }
+
+  worker:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/Dockerfile.worker
+    env_file: [../backend/.env.example]
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/email-campaign-tracker?replicaSet=rs0
+      SMTP_HOST: mailhog
+      AWS_ENDPOINT: http://localstack:4566
+    depends_on:
+      mongo: { condition: service_healthy }
+      mailhog: { condition: service_started }
+      localstack: { condition: service_started }
+
+  web:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/Dockerfile.web
+      args:
+        VITE_API_BASE_URL: http://localhost:3000
+    ports: ["5173:80"]
+    depends_on: [api]
+
+volumes:
+  mongo-data:
+  localstack-data:
