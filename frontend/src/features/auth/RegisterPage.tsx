@@ -4,7 +4,9 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
+import logoFull from '../../assets/logo-full.png';
 import { Button } from '../../components/Button';
+import { Recaptcha } from '../../components/Recaptcha';
 import { TextField } from '../../components/TextField';
 import { ApiError } from '../../lib/apiClient';
 import { useAuth } from './AuthContext';
@@ -25,6 +27,7 @@ export function RegisterPage() {
   const { register: registerOrg } = useAuth();
   const navigate = useNavigate();
   const [formError, setFormError] = useState<string | null>(null);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
@@ -37,8 +40,12 @@ export function RegisterPage() {
 
   const onSubmit = async (values: FormValues) => {
     setFormError(null);
+    if (!recaptchaToken) {
+      setFormError('Please complete the reCAPTCHA challenge');
+      return;
+    }
     try {
-      await registerOrg(values);
+      await registerOrg({ ...values, recaptchaToken });
       navigate('/dashboard');
     } catch (error) {
       if (error instanceof ApiError && error.code === 'DUPLICATE_NAME') {
@@ -52,6 +59,7 @@ export function RegisterPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-8">
       <div className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <img src={logoFull} alt="Arsi India Info" className="mx-auto mb-4 h-10 w-auto" />
         <h1 className="text-lg font-semibold text-slate-900">Create your organization</h1>
         <p className="mt-1 text-sm text-slate-500">Start tracking campaign delivery in minutes</p>
 
@@ -86,6 +94,7 @@ export function RegisterPage() {
               <span className="mt-1 block text-xs text-slate-500">Strength: {strength}</span>
             )}
           </div>
+          <Recaptcha onChange={setRecaptchaToken} />
           <Button type="submit" className="w-full" isLoading={isSubmitting}>
             Create organization
           </Button>

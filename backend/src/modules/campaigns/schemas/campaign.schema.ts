@@ -3,6 +3,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, SchemaTypes, Types } from 'mongoose';
 import { CampaignStatus } from '../../../shared/enums/campaign-status.enum';
 
+@Schema({ _id: false })
 export class CampaignStats {
   @Prop({ default: 0 }) queued: number;
   @Prop({ default: 0 }) sent: number;
@@ -14,6 +15,8 @@ export class CampaignStats {
   @Prop({ default: 0 }) failed: number;
   @Prop({ default: 0 }) unsubscribed: number;
 }
+
+export const CampaignStatsSchema = SchemaFactory.createForClass(CampaignStats);
 
 export type CampaignDocument = HydratedDocument<Campaign>;
 
@@ -58,7 +61,7 @@ export class Campaign {
   @Prop()
   sentAt?: Date;
 
-  @Prop({ type: CampaignStats, default: () => ({}) })
+  @Prop({ type: CampaignStatsSchema, default: () => ({}) })
   stats: CampaignStats;
 
   @Prop({ default: 1 })

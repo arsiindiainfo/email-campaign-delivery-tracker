@@ -16,11 +16,13 @@ interface RegisterInput {
   name: string;
   email: string;
   password: string;
+  recaptchaToken: string;
 }
 
 interface LoginInput {
   email: string;
   password: string;
+  recaptchaToken: string;
 }
 
 interface AuthContextValue {

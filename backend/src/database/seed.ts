@@ -64,12 +64,16 @@ async function seed() {
   const campaignRecipientsRepository = app.get(CampaignRecipientsRepository);
   const eventsService = app.get(EventsService);
 
-  const { organization, user: owner } = await authService.register({
-    organizationName: 'NovaMail Retail Co.',
-    name: 'Asha Rao',
-    email: 'asha@novamail.demo',
-    password: 'Str0ngPass!23',
-  });
+  const { organization, user: owner } = await authService.register(
+    {
+      organizationName: 'NovaMail Retail Co.',
+      name: 'Asha Rao',
+      email: 'asha@novamail.demo',
+      password: 'Str0ngPass!23',
+      recaptchaToken: 'seed-bypass',
+    },
+    { skipRecaptcha: true },
+  );
   logger.log(`Created organization ${organization.name} (${organization.id})`);
 
   await organizationsService.updateProfile(organization.id, {

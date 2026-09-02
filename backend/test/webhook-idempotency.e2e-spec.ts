@@ -41,6 +41,7 @@ describe('Webhook idempotency (e2e, §9.3)', () => {
         name: 'Test Owner',
         email: 'owner@webhooktest.demo',
         password: 'Str0ngPass!23',
+        recaptchaToken: 'test-bypass',
       })
       .expect(201);
     const body = register.body as {

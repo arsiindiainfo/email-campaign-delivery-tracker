@@ -44,4 +44,6 @@ export const envValidationSchema = Joi.object({
 
   THROTTLE_TTL_MS: Joi.number().default(60000),
   THROTTLE_LIMIT: Joi.number().default(120),
+
+  RECAPTCHA_SECRET_KEY: Joi.string().allow('').default(''),
 });

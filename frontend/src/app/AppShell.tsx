@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Arsi India Info. Licensed under the MIT License. See LICENSE and TRADEMARK.md.
 import { NavLink, Outlet } from 'react-router-dom';
+import logoFull from '../assets/logo-full.png';
 import { BrandFooter } from '../components/BrandFooter';
 import { useAuth } from '../features/auth/AuthContext';
 
@@ -19,8 +20,8 @@ export function AppShell() {
     <div className="flex min-h-screen bg-slate-50">
       <aside className="flex w-56 shrink-0 flex-col border-r border-slate-200 bg-white">
         <div className="border-b border-slate-200 px-4 py-4">
+          <img src={logoFull} alt="Arsi India Info" className="mb-2 h-6 w-auto" />
           <div className="text-sm font-semibold text-slate-900">{organization?.name ?? 'Email Campaign Tracker'}</div>
-          <div className="text-xs text-slate-400">Arsi India Info</div>
         </div>
         <nav className="flex-1 space-y-0.5 p-3">
           {NAV_ITEMS.map((item) => (

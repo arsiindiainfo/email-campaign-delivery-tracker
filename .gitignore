@@ -1,0 +1,7 @@
+# Local dev artifacts (manual, Docker-less dev workflow)
+*.log
+.mongo-data-smoketest/
+
+# OS
+.DS_Store
+Thumbs.db

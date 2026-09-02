@@ -10,6 +10,8 @@ import { InjectConnection } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Connection } from 'mongoose';
 import { AppConfig } from '../../config/configuration';
+import { RecaptchaService } from '../../common/recaptcha/recaptcha.service';
+import { RecaptchaVerificationFailedException } from '../../shared/exceptions/domain.exception';
 import { OrganizationResponseDto } from '../organizations/dto/organization-response.dto';
 import { OrganizationsService } from '../organizations/organizations.service';
 import { UserResponseDto } from '../users/dto/user-response.dto';
@@ -34,9 +36,22 @@ export class AuthService {
     private readonly organizationsService: OrganizationsService,
     private readonly usersService: UsersService,
     private readonly usersRepository: UsersRepository,
+    private readonly recaptchaService: RecaptchaService,
   ) {}
 
-  async register(dto: RegisterDto): Promise<AuthResponseDto> {
+  /**
+   * `skipRecaptcha` exists only for trusted server-side callers that never go
+   * through the public HTTP controller (e.g. `database/seed.ts`) — it is not
+   * reachable from any request DTO, so it can't be used to bypass the check
+   * from outside.
+   */
+  async register(
+    dto: RegisterDto,
+    { skipRecaptcha = false }: { skipRecaptcha?: boolean } = {},
+  ): Promise<AuthResponseDto> {
+    if (!skipRecaptcha && !(await this.recaptchaService.verify(dto.recaptchaToken))) {
+      throw new RecaptchaVerificationFailedException();
+    }
     if (await this.usersRepository.emailExists(dto.email)) {
       throw new ConflictException('An account with this email already exists');
     }
@@ -77,6 +92,9 @@ export class AuthService {
   }
 
   async login(dto: LoginDto): Promise<AuthResponseDto> {
+    if (!(await this.recaptchaService.verify(dto.recaptchaToken))) {
+      throw new RecaptchaVerificationFailedException();
+    }
     const user = await this.usersRepository.findByEmailWithPassword(dto.email);
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');

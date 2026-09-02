@@ -4,7 +4,9 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 import { z } from 'zod';
+import logoFull from '../../assets/logo-full.png';
 import { Button } from '../../components/Button';
+import { Recaptcha } from '../../components/Recaptcha';
 import { TextField } from '../../components/TextField';
 import { ApiError } from '../../lib/apiClient';
 import { useAuth } from './AuthContext';
@@ -16,20 +18,33 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
+const DEMO_CREDENTIALS = { email: 'asha@novamail.demo', password: 'Str0ngPass!23' };
+
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [formError, setFormError] = useState<string | null>(null);
+  const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
+  const fillDemoCredentials = () => {
+    setValue('email', DEMO_CREDENTIALS.email, { shouldValidate: true });
+    setValue('password', DEMO_CREDENTIALS.password, { shouldValidate: true });
+  };
+
   const onSubmit = async (values: FormValues) => {
     setFormError(null);
+    if (!recaptchaToken) {
+      setFormError('Please complete the reCAPTCHA challenge');
+      return;
+    }
     try {
-      await login(values);
+      await login({ ...values, recaptchaToken });
       navigate('/dashboard');
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
@@ -43,6 +58,7 @@ export function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
       <div className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+        <img src={logoFull} alt="Arsi India Info" className="mx-auto mb-4 h-10 w-auto" />
         <h1 className="text-lg font-semibold text-slate-900">Sign in</h1>
         <p className="mt-1 text-sm text-slate-500">Email Campaign & Delivery Tracking Platform</p>
 
@@ -56,10 +72,21 @@ export function LoginPage() {
             error={errors.password?.message}
             {...register('password')}
           />
+          <Recaptcha onChange={setRecaptchaToken} />
           <Button type="submit" className="w-full" isLoading={isSubmitting}>
             Sign in
           </Button>
         </form>
+
+        <button
+          type="button"
+          onClick={fillDemoCredentials}
+          className="mt-4 w-full rounded-md border border-dashed border-indigo-200 bg-indigo-50 px-3 py-2 text-left text-xs text-indigo-700 transition-colors hover:bg-indigo-100"
+        >
+          <span className="font-medium">Use demo login</span>
+          <br />
+          {DEMO_CREDENTIALS.email} / {DEMO_CREDENTIALS.password}
+        </button>
 
         <p className="mt-4 text-center text-sm text-slate-500">
           No account?{' '}

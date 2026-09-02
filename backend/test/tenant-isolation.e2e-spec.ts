@@ -20,6 +20,7 @@ async function registerOrg(
       name: 'Owner',
       email,
       password: 'Str0ngPass!23',
+      recaptchaToken: 'test-bypass',
     })
     .expect(201);
   const body = response.body as RegisterResponse;

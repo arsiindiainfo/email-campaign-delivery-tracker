@@ -44,6 +44,9 @@ export interface AppConfig {
     ttlMs: number;
     limit: number;
   };
+  recaptcha: {
+    secretKey: string;
+  };
 }
 
 export default (): AppConfig => ({
@@ -95,5 +98,8 @@ export default (): AppConfig => ({
   throttle: {
     ttlMs: parseInt(process.env.THROTTLE_TTL_MS ?? '60000', 10),
     limit: parseInt(process.env.THROTTLE_LIMIT ?? '120', 10),
+  },
+  recaptcha: {
+    secretKey: process.env.RECAPTCHA_SECRET_KEY ?? '',
   },
 });

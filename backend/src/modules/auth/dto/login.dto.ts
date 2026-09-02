@@ -11,4 +11,9 @@ export class LoginDto {
   @IsString()
   @MinLength(1)
   password: string;
+
+  @ApiProperty({ description: 'Google reCAPTCHA v2 response token' })
+  @IsString()
+  @MinLength(1)
+  recaptchaToken: string;
 }

@@ -1,3 +1,5 @@
+<img src="assets/logo.png" alt="Arsi India Info" width="320" />
+
 # Portfolio Demo Walkthrough (~5 minutes)
 
 This walks through the full campaign lifecycle using only the Docker Compose
@@ -29,9 +31,14 @@ with:
 Open http://localhost:5173, sign in as the owner, and check:
 
 - **Dashboard** — KPI row + recent campaigns table
+
+  ![Dashboard with KPI row and recent campaigns](assets/screenshots/01-dashboard.png)
+
 - **Campaigns → Spring Sale Launch** — funnel chart (Queued → Sent →
   Delivered → Opened → Clicked, with Bounced/Complained side-counts), the
   opens/clicks time-series chart, and the per-recipient status table
+
+  ![Campaign analytics: funnel, time series, and recipient statuses](assets/screenshots/03-campaign-analytics.png)
 
 ## 3. Watch a real send happen
 
@@ -65,3 +72,36 @@ Create a new campaign against the seeded list and template, then **Schedule
   `409 VERSION_CONFLICT`.
 - **Idempotent unsubscribe**: click a one-click unsubscribe link twice — the
   second call is a no-op success, not an error.
+
+## Screenshots
+
+The rest of the app, for reference — all captured against the seeded
+NovaMail Retail Co. data:
+
+**Campaigns list** — every lifecycle state side by side (draft, scheduled, sent):
+
+![Campaigns list showing draft, scheduled, and sent campaigns](assets/screenshots/02-campaigns-list.png)
+
+**Templates list**:
+
+![Templates list](assets/screenshots/04-templates-list.png)
+
+**Template editor** — merge-field shortcuts and a live preview pane:
+
+![Template editor with merge fields and live preview](assets/screenshots/05-template-editor.png)
+
+**Recipient lists**:
+
+![Recipient lists](assets/screenshots/06-lists.png)
+
+**List detail** — note the auto-suppressed contact from the simulated bounce:
+
+![List detail with one contact auto-suppressed after a bounce](assets/screenshots/07-list-detail.png)
+
+**New campaign wizard** — org sender defaults applied automatically:
+
+![New campaign wizard, details step](assets/screenshots/08-campaign-wizard.png)
+
+**Settings** — sender domain verification:
+
+![Settings page with sender domain verification](assets/screenshots/09-settings.png)

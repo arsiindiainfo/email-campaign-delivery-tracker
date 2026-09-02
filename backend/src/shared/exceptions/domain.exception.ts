@@ -108,3 +108,10 @@ export class ForbiddenRoleException extends ForbiddenException {
     super(message);
   }
 }
+
+export class RecaptchaVerificationFailedException extends BadRequestException {
+  errorCode = ErrorCode.RECAPTCHA_FAILED;
+  constructor(message = 'reCAPTCHA verification failed — please try again') {
+    super(message);
+  }
+}

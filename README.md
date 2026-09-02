@@ -1,3 +1,5 @@
+<img src="docs/assets/logo.png" alt="Arsi India Info" width="360" />
+
 # Email Campaign & Delivery Tracking Platform
 
 A production-style email marketing and delivery-analytics platform — campaign
@@ -14,6 +16,11 @@ event handling, and analytics rollups derived from an append-only event log.
 > © 2026 Arsi India Info. Source code is MIT-licensed — see [LICENSE](LICENSE).
 > The Arsi India Info name and logo are separately protected — see
 > [TRADEMARK.md](TRADEMARK.md).
+
+![Campaign analytics: funnel, opens/clicks time series, and per-recipient delivery status](docs/assets/screenshots/03-campaign-analytics.png)
+
+More screenshots — dashboard, campaign wizard, template editor, contact
+lists — in the [portfolio demo walkthrough](docs/portfolio-demo.md#screenshots).
 
 ## What it demonstrates
 
