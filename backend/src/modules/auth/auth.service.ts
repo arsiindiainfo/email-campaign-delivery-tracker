@@ -268,7 +268,11 @@ export class AuthService {
         text: owner.text,
       });
     } catch (error) {
-      this.logger.error('Failed to send owner registration notification', error as Error);
+      const err = error as Error;
+      this.logger.error(
+        `Failed to send owner registration notification: ${err.message}`,
+        err.stack,
+      );
     }
 
     try {
@@ -284,7 +288,11 @@ export class AuthService {
         text: verification.text,
       });
     } catch (error) {
-      this.logger.error('Failed to send verification email', error as Error);
+      const err = error as Error;
+      this.logger.error(
+        `Failed to send verification email: ${err.message}`,
+        err.stack,
+      );
     }
   }
 
