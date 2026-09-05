@@ -8,6 +8,7 @@ import {
   DemoRecipientNotAllowedException,
   DemoSendQuotaExceededException,
 } from '../../shared/exceptions/domain.exception';
+import { ContactsRepository } from '../contacts/contacts.repository';
 import { ContactApprovalStatus } from '../contacts/schemas/contact.schema';
 import { DemoSendLog, DemoSendLogDocument } from './schemas/demo-send-log.schema';
 
@@ -30,6 +31,7 @@ export class DemoSendGuardService {
     configService: ConfigService<AppConfig>,
     @InjectModel(DemoSendLog.name)
     private readonly demoSendLogModel: Model<DemoSendLogDocument>,
+    private readonly contactsRepository: ContactsRepository,
   ) {
     const demoGuard = configService.get('demoGuard', { infer: true })!;
     this.allowedRecipients = new Set(demoGuard.allowedRecipients);
@@ -43,12 +45,29 @@ export class DemoSendGuardService {
     );
   }
 
-  /** Strict check for explicit, hand-entered recipient lists (e.g. sendTest) — rejects the whole action if any address isn't allowed. */
-  assertRecipientsAllowed(emails: string[]): void {
-    const blocked = emails.filter((email) => !this.isAllowedRecipient(email));
+  /**
+   * Strict check for explicit, hand-entered recipient lists (e.g. sendTest)
+   * — rejects the whole action if any address isn't allowed. Also honors
+   * contacts approved via the admin panel for this organization, so the
+   * allowlist rule stays consistent between sendTest and real campaign sends.
+   */
+  async assertRecipientsAllowed(
+    organizationId: string,
+    emails: string[],
+  ): Promise<void> {
+    const blocked: string[] = [];
+    for (const email of emails) {
+      if (this.isAllowedRecipient(email)) continue;
+      const contact = await this.contactsRepository.findByEmail(
+        organizationId,
+        email,
+      );
+      if (contact?.approvalStatus === ContactApprovalStatus.APPROVED) continue;
+      blocked.push(email);
+    }
     if (blocked.length > 0) {
       throw new DemoRecipientNotAllowedException(
-        `Not allowed in this public demo: ${blocked.join(', ')}. Only @novamail.demo seed contacts or pre-approved test addresses can receive mail here.`,
+        `Not allowed in this public demo: ${blocked.join(', ')}. Only @novamail.demo seed contacts or admin-approved addresses can receive mail here.`,
       );
     }
   }

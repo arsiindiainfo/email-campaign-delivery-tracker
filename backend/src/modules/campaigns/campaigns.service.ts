@@ -211,7 +211,7 @@ export class CampaignsService {
     id: string,
     dto: SendTestDto,
   ): Promise<{ sent: number }> {
-    this.demoSendGuard.assertRecipientsAllowed(dto.emails);
+    await this.demoSendGuard.assertRecipientsAllowed(organizationId, dto.emails);
     await this.demoSendGuard.assertWithinQuota(organizationId, dto.emails.length);
 
     const campaign = await this.getActiveOrThrow(organizationId, id);
