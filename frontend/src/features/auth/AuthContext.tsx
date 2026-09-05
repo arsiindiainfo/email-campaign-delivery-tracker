@@ -25,12 +25,16 @@ interface LoginInput {
   recaptchaToken: string;
 }
 
+interface RegisterResult {
+  message: string;
+}
+
 interface AuthContextValue {
   user: User | null;
   organization: Organization | null;
   isAuthenticated: boolean;
   login: (input: LoginInput) => Promise<void>;
-  register: (input: RegisterInput) => Promise<void>;
+  register: (input: RegisterInput) => Promise<RegisterResult>;
   logout: () => void;
   setOrganization: (organization: Organization) => void;
 }
@@ -70,13 +74,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [persist],
   );
 
-  const register = useCallback(
-    async (input: RegisterInput) => {
-      const auth = await apiPost<AuthResponse>('/auth/register', input);
-      persist(auth);
-    },
-    [persist],
-  );
+  const register = useCallback(async (input: RegisterInput) => {
+    // No tokens are issued here — the account isn't usable until the email is verified.
+    return apiPost<RegisterResult>('/auth/register', input);
+  }, []);
 
   const logout = useCallback(() => {
     tokenStorage.clear();

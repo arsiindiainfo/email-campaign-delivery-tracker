@@ -127,6 +127,31 @@ export class DemoRecipientNotAllowedException extends BadRequestException {
   }
 }
 
+export class EmailNotVerifiedException extends UnauthorizedException {
+  errorCode = ErrorCode.EMAIL_NOT_VERIFIED;
+  constructor(
+    message = 'Please verify your email address before signing in — check your inbox for the verification link',
+  ) {
+    super(message);
+  }
+}
+
+export class InvalidVerificationTokenException extends BadRequestException {
+  errorCode = ErrorCode.INVALID_VERIFICATION_TOKEN;
+  constructor(
+    message = 'This verification link is invalid or has expired',
+  ) {
+    super(message);
+  }
+}
+
+export class AccountBlockedException extends UnauthorizedException {
+  errorCode = ErrorCode.ACCOUNT_BLOCKED;
+  constructor(message = 'This account has been blocked by an administrator') {
+    super(message);
+  }
+}
+
 export class RecaptchaVerificationFailedException extends BadRequestException {
   errorCode = ErrorCode.RECAPTCHA_FAILED;
   constructor(message = 'reCAPTCHA verification failed — please try again') {

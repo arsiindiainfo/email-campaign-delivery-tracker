@@ -30,6 +30,23 @@ export class User {
   @Prop({ select: false })
   refreshTokenHash?: string;
 
+  @Prop({ required: true, default: false })
+  emailVerified: boolean;
+
+  @Prop({ select: false })
+  emailVerificationToken?: string;
+
+  @Prop({ select: false })
+  emailVerificationExpiresAt?: Date;
+
+  /** Platform-wide admin (cross-organization) — separate from the per-org Role enum. Only ever set manually. */
+  @Prop({ required: true, default: false })
+  isPlatformAdmin: boolean;
+
+  /** Set only by a platform admin (§ admin.service.ts) — a blocked user can no longer log in. */
+  @Prop({ required: true, default: false })
+  isBlocked: boolean;
+
   createdAt?: Date;
   updatedAt?: Date;
 }

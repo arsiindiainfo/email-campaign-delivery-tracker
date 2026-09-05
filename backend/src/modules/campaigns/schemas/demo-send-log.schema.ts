@@ -12,8 +12,17 @@ export class DemoSendLog {
   @Prop({ type: SchemaTypes.ObjectId, required: true, index: true })
   organizationId: Types.ObjectId;
 
+  @Prop({ type: SchemaTypes.ObjectId, required: true, index: true })
+  userId: Types.ObjectId;
+
   @Prop({ required: true, min: 1 })
   count: number;
+
+  @Prop({ trim: true })
+  subject?: string;
+
+  @Prop({ type: [String], default: [] })
+  recipients: string[];
 
   sentAt?: Date;
 }

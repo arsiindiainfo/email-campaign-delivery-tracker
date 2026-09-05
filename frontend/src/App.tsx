@@ -3,9 +3,13 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from './app/ProtectedRoute';
 import { ToastProvider } from './components/ToastContext';
+import { AdminContactsPage } from './features/admin/AdminContactsPage';
+import { AdminSendLogPage } from './features/admin/AdminSendLogPage';
+import { AdminUsersPage } from './features/admin/AdminUsersPage';
 import { AuthProvider } from './features/auth/AuthContext';
 import { LoginPage } from './features/auth/LoginPage';
 import { RegisterPage } from './features/auth/RegisterPage';
+import { VerifyEmailPage } from './features/auth/VerifyEmailPage';
 import { CampaignPage } from './features/campaigns/CampaignPage';
 import { CampaignsListPage } from './features/campaigns/CampaignsListPage';
 import { ListDetailPage } from './features/contacts/ListDetailPage';
@@ -27,6 +31,7 @@ export default function App() {
             <Routes>
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              <Route path="/verify-email/:token" element={<VerifyEmailPage />} />
               <Route path="/unsubscribe/:token" element={<UnsubscribePage />} />
 
               <Route element={<ProtectedRoute />}>
@@ -39,6 +44,9 @@ export default function App() {
                 <Route path="/lists/:id" element={<ListDetailPage />} />
                 <Route path="/suppressions" element={<SuppressionsPage />} />
                 <Route path="/settings" element={<SettingsPage />} />
+                <Route path="/admin/users" element={<AdminUsersPage />} />
+                <Route path="/admin/contacts" element={<AdminContactsPage />} />
+                <Route path="/admin/send-log" element={<AdminSendLogPage />} />
               </Route>
 
               <Route path="/" element={<Navigate to="/dashboard" replace />} />

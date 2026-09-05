@@ -94,6 +94,11 @@ export async function apiPut<T>(url: string, body?: unknown, config?: AxiosReque
   return response.data.data;
 }
 
+export async function apiPatch<T>(url: string, body?: unknown, config?: AxiosRequestConfig): Promise<T> {
+  const response = await axiosClient.patch<SuccessEnvelope<T>>(url, body, config);
+  return response.data.data;
+}
+
 export async function apiDelete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
   const response = await axiosClient.delete<SuccessEnvelope<T>>(url, config);
   return response.data.data;

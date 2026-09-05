@@ -1,5 +1,5 @@
 // Copyright (c) 2026 Arsi India Info. Licensed under the MIT License. See LICENSE and TRADEMARK.md.
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { Public } from '../../common/decorators/public.decorator';
@@ -9,6 +9,7 @@ import { AuthResponseDto, TokenPairDto } from './dto/auth-response.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { RegisterDto } from './dto/register.dto';
+import { RegisterResponseDto } from './dto/register-response.dto';
 import type { AuthenticatedUser } from './interfaces/authenticated-user.interface';
 
 @ApiTags('auth')
@@ -20,10 +21,19 @@ export class AuthController {
   @Throttle({ default: { limit: 10, ttl: 3_600_000 } })
   @Post('register')
   @ApiOperation({
-    summary: 'Create a new organization and its first (OWNER) user',
+    summary: 'Create a new organization and its first (OWNER) user — issues no tokens, requires email verification first',
   })
-  register(@Body() dto: RegisterDto): Promise<AuthResponseDto> {
+  register(@Body() dto: RegisterDto): Promise<RegisterResponseDto> {
     return this.authService.register(dto);
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 20, ttl: 3_600_000 } })
+  @HttpCode(HttpStatus.OK)
+  @Post('verify-email/:token')
+  @ApiOperation({ summary: 'Verify an email address using the token from the verification email' })
+  verifyEmail(@Param('token') token: string): Promise<{ verified: true }> {
+    return this.authService.verifyEmail(token);
   }
 
   @Public()

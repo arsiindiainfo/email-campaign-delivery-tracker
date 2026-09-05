@@ -5,6 +5,8 @@ export interface SendEmailParams {
   fromEmail: string;
   subject: string;
   html: string;
+  /** Plain-text alternative — spam filters generally score multipart html+text mail better than html-only. */
+  text?: string;
 }
 
 export interface SendEmailResult {

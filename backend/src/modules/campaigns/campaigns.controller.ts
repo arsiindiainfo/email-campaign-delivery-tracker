@@ -88,7 +88,7 @@ export class CampaignsController {
     @Param('id') id: string,
     @Body() dto: SendTestDto,
   ) {
-    return this.campaignsService.sendTest(user.organizationId, id, dto);
+    return this.campaignsService.sendTest(user.organizationId, user.userId, id, dto);
   }
 
   @Post(':id/schedule')

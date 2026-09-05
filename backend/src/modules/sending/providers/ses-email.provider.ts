@@ -38,7 +38,10 @@ export class SesEmailProvider implements EmailProvider {
         Destination: { ToAddresses: [params.to] },
         Message: {
           Subject: { Data: params.subject },
-          Body: { Html: { Data: params.html } },
+          Body: {
+            Html: { Data: params.html },
+            ...(params.text ? { Text: { Data: params.text } } : {}),
+          },
         },
         // Without this, SES sends outside the configuration set and never
         // publishes bounce/complaint/delivery events to the SNS→SQS

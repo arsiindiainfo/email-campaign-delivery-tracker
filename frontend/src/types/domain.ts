@@ -26,6 +26,7 @@ export interface User {
   email: string;
   role: Role;
   organizationId: string;
+  isPlatformAdmin?: boolean;
   createdAt: string;
 }
 

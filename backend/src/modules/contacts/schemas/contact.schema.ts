@@ -7,6 +7,13 @@ export enum ContactStatus {
   SUPPRESSED = 'SUPPRESSED',
 }
 
+/** Public-demo abuse guard: gates whether this contact can ever receive real mail (§ demo-send-guard.service.ts). */
+export enum ContactApprovalStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}
+
 export type ContactDocument = HydratedDocument<Contact>;
 
 @Schema({ timestamps: true })
@@ -34,6 +41,15 @@ export class Contact {
     default: ContactStatus.ACTIVE,
   })
   status: ContactStatus;
+
+  @Prop({
+    type: String,
+    required: true,
+    enum: ContactApprovalStatus,
+    default: ContactApprovalStatus.PENDING,
+    index: true,
+  })
+  approvalStatus: ContactApprovalStatus;
 
   createdAt?: Date;
   updatedAt?: Date;

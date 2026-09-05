@@ -32,6 +32,7 @@ export class SmtpEmailProvider implements EmailProvider {
         from: `${params.fromName} <${params.fromEmail}>`,
         subject: params.subject,
         html: params.html,
+        text: params.text,
       },
     );
     return { providerMessageId: info.messageId };

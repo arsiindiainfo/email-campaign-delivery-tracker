@@ -8,6 +8,7 @@ import {
   DemoRecipientNotAllowedException,
   DemoSendQuotaExceededException,
 } from '../../shared/exceptions/domain.exception';
+import { ContactApprovalStatus } from '../contacts/schemas/contact.schema';
 import { DemoSendLog, DemoSendLogDocument } from './schemas/demo-send-log.schema';
 
 const SEED_DOMAIN = '@novamail.demo';
@@ -52,11 +53,20 @@ export class DemoSendGuardService {
     }
   }
 
-  /** Lenient filter for bulk campaign recipients — silently drops disallowed contacts rather than failing the whole send. */
-  filterAllowedRecipients<T extends { email: string }>(
-    contacts: T[],
-  ): { allowed: T[]; blockedCount: number } {
-    const allowed = contacts.filter((c) => this.isAllowedRecipient(c.email));
+  /**
+   * Lenient filter for bulk campaign recipients — silently drops disallowed
+   * contacts rather than failing the whole send. Admin-approved contacts
+   * (via the admin panel) are allowed in addition to the seed domain/env
+   * allowlist checked by isAllowedRecipient.
+   */
+  filterAllowedRecipients<
+    T extends { email: string; approvalStatus?: ContactApprovalStatus },
+  >(contacts: T[]): { allowed: T[]; blockedCount: number } {
+    const allowed = contacts.filter(
+      (c) =>
+        this.isAllowedRecipient(c.email) ||
+        c.approvalStatus === ContactApprovalStatus.APPROVED,
+    );
     return { allowed, blockedCount: contacts.length - allowed.length };
   }
 
@@ -99,11 +109,20 @@ export class DemoSendGuardService {
     }
   }
 
-  async recordSend(organizationId: string, count: number): Promise<void> {
-    if (count <= 0) return;
+  async recordSend(params: {
+    organizationId: string;
+    userId: string;
+    count: number;
+    subject?: string;
+    recipients: string[];
+  }): Promise<void> {
+    if (params.count <= 0) return;
     await this.demoSendLogModel.create({
-      organizationId: new Types.ObjectId(organizationId),
-      count,
+      organizationId: new Types.ObjectId(params.organizationId),
+      userId: new Types.ObjectId(params.userId),
+      count: params.count,
+      subject: params.subject,
+      recipients: params.recipients,
     });
   }
 }

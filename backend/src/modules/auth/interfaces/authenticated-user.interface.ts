@@ -5,10 +5,12 @@ export interface JwtPayload {
   sub: string;
   organizationId: string;
   role: Role;
+  isPlatformAdmin: boolean;
 }
 
 export interface AuthenticatedUser {
   userId: string;
   organizationId: string;
   role: Role;
+  isPlatformAdmin: boolean;
 }

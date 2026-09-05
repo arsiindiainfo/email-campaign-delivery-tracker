@@ -207,6 +207,7 @@ export class CampaignsService {
 
   async sendTest(
     organizationId: string,
+    userId: string,
     id: string,
     dto: SendTestDto,
   ): Promise<{ sent: number }> {
@@ -237,7 +238,13 @@ export class CampaignsService {
         }),
       ),
     );
-    await this.demoSendGuard.recordSend(organizationId, dto.emails.length);
+    await this.demoSendGuard.recordSend({
+      organizationId,
+      userId,
+      count: dto.emails.length,
+      subject: `[TEST] ${campaign.subject}`,
+      recipients: dto.emails,
+    });
     return { sent: dto.emails.length };
   }
 
@@ -451,7 +458,13 @@ export class CampaignsService {
         }),
       ),
     );
-    await this.demoSendGuard.recordSend(organizationId, contacts.length);
+    await this.demoSendGuard.recordSend({
+      organizationId,
+      userId: campaign.createdBy.toString(),
+      count: contacts.length,
+      subject: campaign.subject,
+      recipients: contacts.map((c) => c.email),
+    });
 
     return (await this.campaignsRepository.updateAndBumpVersion(
       organizationId,

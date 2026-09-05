@@ -10,10 +10,16 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectConnection } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
+import { randomBytes } from 'node:crypto';
 import { Connection } from 'mongoose';
 import { AppConfig } from '../../config/configuration';
 import { RecaptchaService } from '../../common/recaptcha/recaptcha.service';
-import { RecaptchaVerificationFailedException } from '../../shared/exceptions/domain.exception';
+import {
+  AccountBlockedException,
+  EmailNotVerifiedException,
+  InvalidVerificationTokenException,
+  RecaptchaVerificationFailedException,
+} from '../../shared/exceptions/domain.exception';
 import { OrganizationResponseDto } from '../organizations/dto/organization-response.dto';
 import { OrganizationsService } from '../organizations/organizations.service';
 import { EMAIL_PROVIDER } from '../sending/email-provider.interface';
@@ -24,18 +30,20 @@ import { UsersService } from '../users/users.service';
 import { AuthResponseDto, TokenPairDto } from './dto/auth-response.dto';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
+import { RegisterResponseDto } from './dto/register-response.dto';
 import {
   AuthenticatedUser,
   JwtPayload,
 } from './interfaces/authenticated-user.interface';
 import {
   buildOwnerNotificationEmail,
-  buildWelcomeAutoresponderEmail,
+  buildVerificationEmail,
   SYSTEM_FROM_EMAIL,
   SYSTEM_FROM_NAME,
 } from './registration-mailer';
 
 const DEMO_OWNER_NOTIFICATION_EMAIL = 'arsi.india.info@gmail.com';
+const VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 
 const BCRYPT_COST = 12;
 
@@ -55,18 +63,23 @@ export class AuthService {
   ) {}
 
   /**
-   * `skipRecaptcha`/`skipNotificationEmails` exist only for trusted
-   * server-side callers that never go through the public HTTP controller
-   * (e.g. `database/seed.ts`) — neither is reachable from any request DTO,
-   * so they can't be used to bypass anything from outside.
+   * `skipRecaptcha`/`skipNotificationEmails`/`skipEmailVerification` exist
+   * only for trusted server-side callers that never go through the public
+   * HTTP controller (e.g. `database/seed.ts`) — none is reachable from any
+   * request DTO, so none can be used to bypass anything from outside.
    */
   async register(
     dto: RegisterDto,
     {
       skipRecaptcha = false,
       skipNotificationEmails = false,
-    }: { skipRecaptcha?: boolean; skipNotificationEmails?: boolean } = {},
-  ): Promise<AuthResponseDto> {
+      skipEmailVerification = false,
+    }: {
+      skipRecaptcha?: boolean;
+      skipNotificationEmails?: boolean;
+      skipEmailVerification?: boolean;
+    } = {},
+  ): Promise<RegisterResponseDto> {
     if (!skipRecaptcha && !(await this.recaptchaService.verify(dto.recaptchaToken))) {
       throw new RecaptchaVerificationFailedException();
     }
@@ -92,21 +105,33 @@ export class AuthService {
         return { organization: org, user: owner };
       });
 
-      const tokens = await this.issueTokenPair({
-        userId: user.id as string,
-        organizationId: organization.id as string,
-        role: user.role,
-      });
-      await this.persistRefreshToken(user.id as string, tokens.refreshToken);
+      let verificationToken: string | undefined;
+      if (skipEmailVerification) {
+        await this.usersRepository.markEmailVerified(user.id as string);
+      } else {
+        verificationToken = randomBytes(32).toString('hex');
+        await this.usersRepository.setVerificationToken(
+          user.id as string,
+          verificationToken,
+          new Date(Date.now() + VERIFICATION_TOKEN_TTL_MS),
+        );
+      }
 
-      if (!skipNotificationEmails) {
-        await this.sendRegistrationEmails(dto.name, dto.email, organization.name);
+      if (!skipNotificationEmails && verificationToken) {
+        await this.sendRegistrationEmails(
+          dto.name,
+          dto.email,
+          organization.name,
+          verificationToken,
+        );
       }
 
       return {
         user: UserResponseDto.fromDocument(user),
         organization: OrganizationResponseDto.fromDocument(organization),
-        ...tokens,
+        message: skipEmailVerification
+          ? 'Account created.'
+          : 'Account created — check your email to verify it before signing in.',
       };
     } finally {
       await session.endSession();
@@ -128,6 +153,12 @@ export class AuthService {
     if (!passwordMatches) {
       throw new UnauthorizedException('Invalid email or password');
     }
+    if (user.isBlocked) {
+      throw new AccountBlockedException();
+    }
+    if (!user.emailVerified) {
+      throw new EmailNotVerifiedException();
+    }
 
     const organization = await this.organizationsService.getById(
       user.organizationId.toString(),
@@ -136,6 +167,7 @@ export class AuthService {
       userId: user.id as string,
       organizationId: user.organizationId.toString(),
       role: user.role,
+      isPlatformAdmin: user.isPlatformAdmin,
     });
     await this.persistRefreshToken(user.id as string, tokens.refreshToken);
 
@@ -144,6 +176,18 @@ export class AuthService {
       organization: OrganizationResponseDto.fromDocument(organization),
       ...tokens,
     };
+  }
+
+  async verifyEmail(token: string): Promise<{ verified: true }> {
+    const user = await this.usersRepository.findByVerificationToken(token);
+    if (
+      !user?.emailVerificationExpiresAt ||
+      user.emailVerificationExpiresAt.getTime() < Date.now()
+    ) {
+      throw new InvalidVerificationTokenException();
+    }
+    await this.usersRepository.markEmailVerified(user.id as string);
+    return { verified: true };
   }
 
   async refresh(refreshToken: string): Promise<TokenPairDto> {
@@ -166,11 +210,15 @@ export class AuthService {
     if (!matches) {
       throw new UnauthorizedException('Refresh token has been revoked');
     }
+    if (user.isBlocked) {
+      throw new AccountBlockedException();
+    }
 
     const tokens = await this.issueTokenPair({
       userId: user.id as string,
       organizationId: user.organizationId.toString(),
       role: user.role,
+      isPlatformAdmin: user.isPlatformAdmin,
     });
     await this.persistRefreshToken(user.id as string, tokens.refreshToken);
     return tokens;
@@ -187,6 +235,7 @@ export class AuthService {
       sub: claims.userId,
       organizationId: claims.organizationId,
       role: claims.role,
+      isPlatformAdmin: claims.isPlatformAdmin,
     };
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
@@ -206,29 +255,36 @@ export class AuthService {
     name: string,
     email: string,
     organizationName: string,
+    verificationToken: string,
   ): Promise<void> {
     try {
+      const owner = buildOwnerNotificationEmail({ name, email, organizationName });
       await this.emailProvider.send({
         to: DEMO_OWNER_NOTIFICATION_EMAIL,
         fromName: SYSTEM_FROM_NAME,
         fromEmail: SYSTEM_FROM_EMAIL,
         subject: 'New demo registration',
-        html: buildOwnerNotificationEmail({ name, email, organizationName }),
+        html: owner.html,
+        text: owner.text,
       });
     } catch (error) {
       this.logger.error('Failed to send owner registration notification', error as Error);
     }
 
     try {
+      const appBaseUrl = this.configService.get('appBaseUrl', { infer: true });
+      const verifyUrl = `${appBaseUrl}/verify-email/${verificationToken}`;
+      const verification = buildVerificationEmail({ name, verifyUrl });
       await this.emailProvider.send({
         to: email,
         fromName: SYSTEM_FROM_NAME,
         fromEmail: SYSTEM_FROM_EMAIL,
-        subject: 'Welcome — please read: demo sending limits',
-        html: buildWelcomeAutoresponderEmail({ name }),
+        subject: 'Verify your email — demo sending limits inside',
+        html: verification.html,
+        text: verification.text,
       });
     } catch (error) {
-      this.logger.error('Failed to send welcome autoresponder', error as Error);
+      this.logger.error('Failed to send verification email', error as Error);
     }
   }
 

@@ -10,6 +10,7 @@ export class UserResponseDto {
   @ApiProperty() email: string;
   @ApiProperty({ enum: Role }) role: Role;
   @ApiProperty() organizationId: string;
+  @ApiProperty() isPlatformAdmin: boolean;
   @ApiProperty() createdAt: Date;
 
   static fromDocument(doc: UserDocument): UserResponseDto {
@@ -19,6 +20,7 @@ export class UserResponseDto {
     dto.email = doc.email;
     dto.role = doc.role;
     dto.organizationId = toIdString(doc.organizationId);
+    dto.isPlatformAdmin = doc.isPlatformAdmin;
     dto.createdAt = doc.createdAt as Date;
     return dto;
   }

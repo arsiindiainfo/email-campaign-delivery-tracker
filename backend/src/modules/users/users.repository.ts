@@ -33,6 +33,49 @@ export class UsersRepository extends OrgScopedRepository<UserDocument> {
     );
   }
 
+  /** Not org-scoped — the verification link only carries the token, not an organization context. */
+  findByVerificationToken(token: string) {
+    return this.model
+      .findOne({ emailVerificationToken: token })
+      .select('+emailVerificationToken +emailVerificationExpiresAt')
+      .exec();
+  }
+
+  setVerificationToken(userId: string, token: string, expiresAt: Date) {
+    return this.model
+      .findByIdAndUpdate(
+        userId,
+        {
+          $set: {
+            emailVerificationToken: token,
+            emailVerificationExpiresAt: expiresAt,
+          },
+        },
+        { new: true },
+      )
+      .exec();
+  }
+
+  /** Only ever called from database/seed.ts and the (future) ops CLI — never reachable via any HTTP endpoint. */
+  setPlatformAdmin(userId: string, isPlatformAdmin: boolean) {
+    return this.model
+      .findByIdAndUpdate(userId, { $set: { isPlatformAdmin } }, { new: true })
+      .exec();
+  }
+
+  markEmailVerified(userId: string) {
+    return this.model
+      .findByIdAndUpdate(
+        userId,
+        {
+          $set: { emailVerified: true },
+          $unset: { emailVerificationToken: 1, emailVerificationExpiresAt: 1 },
+        },
+        { new: true },
+      )
+      .exec();
+  }
+
   /** Not org-scoped by id lookup — used only by AuthService, which already holds the id from a verified token. */
   setRefreshTokenHash(userId: string, refreshTokenHash: string | undefined) {
     const update = refreshTokenHash

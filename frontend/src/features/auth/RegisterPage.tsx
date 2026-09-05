@@ -2,7 +2,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { z } from 'zod';
 import logoFull from '../../assets/logo-full.png';
 import { Button } from '../../components/Button';
@@ -25,9 +25,9 @@ type FormValues = z.infer<typeof schema>;
 
 export function RegisterPage() {
   const { register: registerOrg } = useAuth();
-  const navigate = useNavigate();
   const [formError, setFormError] = useState<string | null>(null);
   const [recaptchaToken, setRecaptchaToken] = useState<string | null>(null);
+  const [registered, setRegistered] = useState(false);
   const {
     register,
     handleSubmit,
@@ -46,7 +46,7 @@ export function RegisterPage() {
     }
     try {
       await registerOrg({ ...values, recaptchaToken });
-      navigate('/dashboard');
+      setRegistered(true);
     } catch (error) {
       if (error instanceof ApiError && error.code === 'DUPLICATE_NAME') {
         setFormError('An account with this email already exists — try signing in instead.');
@@ -55,6 +55,23 @@ export function RegisterPage() {
       }
     }
   };
+
+  if (registered) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-8">
+        <div className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-6 text-center shadow-sm">
+          <img src={logoFull} alt="Arsi India Info" className="mx-auto mb-4 h-10 w-auto" />
+          <h1 className="text-lg font-semibold text-slate-900">Check your email</h1>
+          <p className="mt-2 text-sm text-slate-500">
+            We sent a verification link to your inbox. Click it to activate your account, then sign in.
+          </p>
+          <Link to="/login" className="mt-4 inline-block text-sm font-medium text-indigo-600 hover:text-indigo-800">
+            Back to sign in
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-8">

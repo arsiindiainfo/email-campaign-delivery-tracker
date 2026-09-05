@@ -19,6 +19,7 @@ import { ListsService } from '../modules/contacts/lists.service';
 import { EventsService } from '../modules/events/events.service';
 import { OrganizationsService } from '../modules/organizations/organizations.service';
 import { TemplatesService } from '../modules/templates/templates.service';
+import { UsersRepository } from '../modules/users/users.repository';
 import { UsersService } from '../modules/users/users.service';
 
 const CONTACTS = [
@@ -63,22 +64,24 @@ async function seed() {
   const campaignsService = app.get(CampaignsService);
   const campaignRecipientsRepository = app.get(CampaignRecipientsRepository);
   const eventsService = app.get(EventsService);
+  const usersRepository = app.get(UsersRepository);
 
   const { organization, user: owner } = await authService.register(
     {
-      organizationName: 'NovaMail Retail Co.',
-      name: 'Asha Rao',
+      organizationName: 'Arsi India Info',
+      name: 'Rajib Majumder',
       email: 'arsi.india.info@gmail.com',
       password: 'Rajib@1984',
       recaptchaToken: 'seed-bypass',
     },
-    { skipRecaptcha: true, skipNotificationEmails: true },
+    { skipRecaptcha: true, skipNotificationEmails: true, skipEmailVerification: true },
   );
+  await usersRepository.setPlatformAdmin(owner.id as string, true);
   logger.log(`Created organization ${organization.name} (${organization.id})`);
 
   await organizationsService.updateProfile(organization.id, {
-    senderDomain: 'novamail.demo',
-    senderEmail: 'hello@novamail.demo',
+    senderDomain: 'arsiindiainfo.com',
+    senderEmail: 'demo@arsiindiainfo.com',
   });
   await organizationsService.markSenderVerified(organization.id);
 

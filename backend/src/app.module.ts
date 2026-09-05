@@ -7,12 +7,14 @@ import { LoggerModule } from 'nestjs-pino';
 import { AppController } from './app.controller';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
+import { PlatformAdminGuard } from './common/guards/platform-admin.guard';
 import { RolesGuard } from './common/guards/roles.guard';
 import { TransformInterceptor } from './common/interceptors/transform.interceptor';
 import configuration, { AppConfig } from './config/configuration';
 import { envValidationSchema } from './config/env.validation';
 import { buildLoggerOptions } from './config/logger.config';
 import { DatabaseModule } from './database/database.module';
+import { AdminModule } from './modules/admin/admin.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CampaignsModule } from './modules/campaigns/campaigns.module';
@@ -59,12 +61,14 @@ import { WebhooksModule } from './modules/webhooks/webhooks.module';
     TrackingModule,
     WebhooksModule,
     AnalyticsModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_GUARD, useClass: PlatformAdminGuard },
     { provide: APP_FILTER, useClass: HttpExceptionFilter },
     { provide: APP_INTERCEPTOR, useClass: TransformInterceptor },
   ],
