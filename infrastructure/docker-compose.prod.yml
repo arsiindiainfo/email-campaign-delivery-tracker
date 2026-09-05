@@ -51,6 +51,7 @@ services:
       dockerfile: infrastructure/docker/Dockerfile.web
       args:
         VITE_API_BASE_URL: /api/v1
+        VITE_RECAPTCHA_SITE_KEY: 6LcOEaktAAAAAIP7mK_EKXiO7AGG6o_HTnaJReGb
     container_name: ect-web
     restart: unless-stopped
     ports:
