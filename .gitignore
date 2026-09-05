@@ -5,3 +5,4 @@
 # OS
 .DS_Store
 Thumbs.db
+infrastructure/iam-policy-ec2-role.json
