@@ -1,0 +1,61 @@
+# Production compose file — run on the EC2 server, NOT for local dev
+# (use docker-compose.yml for local dev's mongo/mailhog/localstack).
+#
+# api/worker use real AWS (SQS/S3/SES) via the EC2 instance's IAM role —
+# no AWS_ACCESS_KEY_ID/SECRET needed in backend/.env for production.
+name: email-campaign-delivery-tracker-prod
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: ect-mongo
+    restart: unless-stopped
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    volumes:
+      - ect-mongo-data:/data/db
+    healthcheck:
+      test: >
+        mongosh --quiet --eval
+        "try { rs.status() } catch (e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo:27017'}]}) }"
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/Dockerfile.api
+    container_name: ect-api
+    restart: unless-stopped
+    env_file:
+      - ../backend/.env
+    ports:
+      - "127.0.0.1:4001:3000"
+    depends_on:
+      mongo: { condition: service_healthy }
+
+  worker:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/Dockerfile.worker
+    container_name: ect-worker
+    restart: unless-stopped
+    env_file:
+      - ../backend/.env
+    depends_on:
+      mongo: { condition: service_healthy }
+
+  web:
+    build:
+      context: ..
+      dockerfile: infrastructure/docker/Dockerfile.web
+      args:
+        VITE_API_BASE_URL: /api/v1
+    container_name: ect-web
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8091:80"
+    depends_on: [api]
+
+volumes:
+  ect-mongo-data:

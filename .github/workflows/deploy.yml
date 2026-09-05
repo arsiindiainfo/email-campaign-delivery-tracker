@@ -1,0 +1,29 @@
+name: Deploy demo1 (email-campaign-delivery-tracker)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-demo1
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            cd ~/apps/email-campaign-delivery-tracker
+            git fetch origin main
+            git reset --hard origin/main
+            git clean -fd -e backend/.env
+            cd infrastructure
+            docker compose -f docker-compose.prod.yml up -d --build
