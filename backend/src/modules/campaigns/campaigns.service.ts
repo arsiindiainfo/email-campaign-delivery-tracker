@@ -40,6 +40,7 @@ import { SuppressionsService } from '../suppressions/suppressions.service';
 import { TemplatesRepository } from '../templates/templates.repository';
 import { CampaignRecipientsRepository } from './campaign-recipients.repository';
 import { CampaignsRepository } from './campaigns.repository';
+import { DemoSendGuardService } from './demo-send-guard.service';
 import { CreateCampaignDto } from './dto/create-campaign.dto';
 import {
   CampaignResponseDto,
@@ -74,6 +75,7 @@ export class CampaignsService {
     @Inject(forwardRef(() => EventsService))
     private readonly eventsService: EventsService,
     private readonly configService: ConfigService<AppConfig>,
+    private readonly demoSendGuard: DemoSendGuardService,
   ) {}
 
   async create(
@@ -208,6 +210,9 @@ export class CampaignsService {
     id: string,
     dto: SendTestDto,
   ): Promise<{ sent: number }> {
+    this.demoSendGuard.assertRecipientsAllowed(dto.emails);
+    await this.demoSendGuard.assertWithinQuota(organizationId, dto.emails.length);
+
     const campaign = await this.getActiveOrThrow(organizationId, id);
     const template = await this.templatesRepository.findActiveById(
       organizationId,
@@ -232,6 +237,7 @@ export class CampaignsService {
         }),
       ),
     );
+    await this.demoSendGuard.recordSend(organizationId, dto.emails.length);
     return { sent: dto.emails.length };
   }
 
@@ -406,10 +412,19 @@ export class CampaignsService {
     campaignId: string,
   ): Promise<CampaignDocument> {
     const campaign = await this.getActiveOrThrow(organizationId, campaignId);
-    const contacts = await this.contactsRepository.findActiveInLists(
+    const allContacts = await this.contactsRepository.findActiveInLists(
       organizationId,
       campaign.listIds.map((id) => id.toString()),
     );
+
+    const { allowed: contacts, blockedCount } =
+      this.demoSendGuard.filterAllowedRecipients(allContacts);
+    if (blockedCount > 0) {
+      this.logger.warn(
+        `Demo send guard dropped ${blockedCount} recipient(s) not on the allowlist for campaign ${campaignId}`,
+      );
+    }
+    await this.demoSendGuard.assertWithinQuota(organizationId, contacts.length);
 
     const inserted = await this.campaignRecipientsRepository.insertMany(
       contacts.map((contact) => ({
@@ -436,6 +451,7 @@ export class CampaignsService {
         }),
       ),
     );
+    await this.demoSendGuard.recordSend(organizationId, contacts.length);
 
     return (await this.campaignsRepository.updateAndBumpVersion(
       organizationId,

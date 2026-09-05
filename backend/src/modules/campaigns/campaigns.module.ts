@@ -12,17 +12,20 @@ import { CampaignRecipientsRepository } from './campaign-recipients.repository';
 import { CampaignsController } from './campaigns.controller';
 import { CampaignsRepository } from './campaigns.repository';
 import { CampaignsService } from './campaigns.service';
+import { DemoSendGuardService } from './demo-send-guard.service';
 import {
   CampaignRecipient,
   CampaignRecipientSchema,
 } from './schemas/campaign-recipient.schema';
 import { Campaign, CampaignSchema } from './schemas/campaign.schema';
+import { DemoSendLog, DemoSendLogSchema } from './schemas/demo-send-log.schema';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Campaign.name, schema: CampaignSchema },
       { name: CampaignRecipient.name, schema: CampaignRecipientSchema },
+      { name: DemoSendLog.name, schema: DemoSendLogSchema },
     ]),
     forwardRef(() => TemplatesModule),
     forwardRef(() => ContactsModule),
@@ -37,6 +40,7 @@ import { Campaign, CampaignSchema } from './schemas/campaign.schema';
     CampaignsService,
     CampaignsRepository,
     CampaignRecipientsRepository,
+    DemoSendGuardService,
   ],
   exports: [
     CampaignsRepository,

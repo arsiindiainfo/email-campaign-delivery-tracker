@@ -47,4 +47,9 @@ export const envValidationSchema = Joi.object({
   THROTTLE_LIMIT: Joi.number().default(120),
 
   RECAPTCHA_SECRET_KEY: Joi.string().allow('').default(''),
+
+  // Public-demo abuse guard (§ demo-send-guard.service.ts) — comma-separated
+  // real addresses allowed to receive mail, in addition to the always-allowed
+  // @novamail.demo seed domain. Leave empty to allow only seed contacts.
+  DEMO_ALLOWED_RECIPIENT_EMAILS: Joi.string().allow('').default(''),
 });

@@ -109,6 +109,24 @@ export class ForbiddenRoleException extends ForbiddenException {
   }
 }
 
+export class DemoSendQuotaExceededException extends BadRequestException {
+  errorCode = ErrorCode.DEMO_SEND_QUOTA_EXCEEDED;
+  constructor(
+    message = 'This public demo caps sending to protect the shared AWS account — please try again later',
+  ) {
+    super(message);
+  }
+}
+
+export class DemoRecipientNotAllowedException extends BadRequestException {
+  errorCode = ErrorCode.DEMO_RECIPIENT_NOT_ALLOWED;
+  constructor(
+    message = 'This public demo can only send to pre-approved demo/test addresses, not newly added real recipients',
+  ) {
+    super(message);
+  }
+}
+
 export class RecaptchaVerificationFailedException extends BadRequestException {
   errorCode = ErrorCode.RECAPTCHA_FAILED;
   constructor(message = 'reCAPTCHA verification failed — please try again') {

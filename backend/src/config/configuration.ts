@@ -48,6 +48,9 @@ export interface AppConfig {
   recaptcha: {
     secretKey: string;
   };
+  demoGuard: {
+    allowedRecipients: string[];
+  };
 }
 
 export default (): AppConfig => ({
@@ -103,5 +106,11 @@ export default (): AppConfig => ({
   },
   recaptcha: {
     secretKey: process.env.RECAPTCHA_SECRET_KEY ?? '',
+  },
+  demoGuard: {
+    allowedRecipients: (process.env.DEMO_ALLOWED_RECIPIENT_EMAILS ?? '')
+      .split(',')
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean),
   },
 });
