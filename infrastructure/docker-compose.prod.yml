@@ -10,16 +10,21 @@ services:
     image: mongo:7
     container_name: ect-mongo
     restart: unless-stopped
-    command: ["--replSet", "rs0", "--bind_ip_all"]
+    # wiredTigerCacheSizeGB is explicit because Mongo's default sizing logic
+    # doesn't reliably respect small container memory limits — on this ~1GB
+    # instance it was over-allocating and thrashing to disk continuously
+    # (49GB+ of accumulated block I/O for a near-empty demo DB — the real
+    # cause of the swap pressure/slow-build/SSH-lag incidents on 2026-09-05).
+    command: ["--replSet", "rs0", "--bind_ip_all", "--wiredTigerCacheSizeGB", "0.25"]
     volumes:
       - ect-mongo-data:/data/db
     healthcheck:
       test: >
         mongosh --quiet --eval
         "try { rs.status() } catch (e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'mongo:27017'}]}) }"
-      interval: 5s
-      timeout: 5s
-      retries: 20
+      interval: 30s
+      timeout: 10s
+      retries: 10
 
   api:
     build:
