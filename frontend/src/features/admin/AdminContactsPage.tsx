@@ -1,7 +1,9 @@
 // Copyright (c) 2026 Arsi India Info. Licensed under the MIT License. See LICENSE and TRADEMARK.md.
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { ErrorState } from '../../components/EmptyState';
+import type { Column } from '../../components/DataTable';
+import { DataTable } from '../../components/DataTable';
+import { EmptyState, ErrorState } from '../../components/EmptyState';
 import { useToast } from '../../components/ToastContext';
 import { apiGet, apiPatch, ApiError } from '../../lib/apiClient';
 
@@ -51,9 +53,37 @@ export function AdminContactsPage() {
     return <ErrorState message="Failed to load contacts" onRetry={() => void refetch()} />;
   }
 
+  const columns: Column<AdminContactRow>[] = [
+    { header: 'Email', render: (row) => row.email },
+    { header: 'Name', render: (row) => [row.firstName, row.lastName].filter(Boolean).join(' ') || '—' },
+    { header: 'Organization', render: (row) => row.organizationName },
+    {
+      header: 'Status',
+      render: (row) => <span className={`font-medium ${STATUS_STYLES[row.approvalStatus]}`}>{row.approvalStatus}</span>,
+    },
+    { header: 'Added', render: (row) => new Date(row.createdAt).toLocaleDateString() },
+    {
+      header: 'Actions',
+      render: (row) => (
+        <div className="flex gap-3">
+          {row.approvalStatus !== 'APPROVED' && (
+            <button onClick={() => void setApproval(row, 'APPROVED')} className="text-sm text-emerald-600 hover:underline">
+              Approve
+            </button>
+          )}
+          {row.approvalStatus !== 'REJECTED' && (
+            <button onClick={() => void setApproval(row, 'REJECTED')} className="text-sm text-red-600 hover:underline">
+              Reject
+            </button>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-xl font-semibold text-slate-900">Contact approvals (platform admin)</h1>
         <select
           value={statusFilter}
@@ -71,61 +101,13 @@ export function AdminContactsPage() {
         @novamail.demo contacts never need approval.
       </p>
 
-      <div className="overflow-x-auto rounded-md border border-slate-200 bg-white">
-        <table className="w-full min-w-[600px] text-left text-sm">
-          <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase text-slate-500">
-            <tr>
-              <th className="px-4 py-2">Email</th>
-              <th className="px-4 py-2">Name</th>
-              <th className="px-4 py-2">Organization</th>
-              <th className="px-4 py-2">Status</th>
-              <th className="px-4 py-2">Added</th>
-              <th className="px-4 py-2">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading && (
-              <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-slate-400">
-                  Loading&hellip;
-                </td>
-              </tr>
-            )}
-            {!isLoading && data?.items.length === 0 && (
-              <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-slate-400">
-                  Nothing here
-                </td>
-              </tr>
-            )}
-            {data?.items.map((row) => (
-              <tr key={row.id} className="border-b border-slate-100 last:border-0">
-                <td className="px-4 py-2">{row.email}</td>
-                <td className="px-4 py-2 text-slate-600">
-                  {[row.firstName, row.lastName].filter(Boolean).join(' ') || '—'}
-                </td>
-                <td className="px-4 py-2 text-slate-600">{row.organizationName}</td>
-                <td className={`px-4 py-2 font-medium ${STATUS_STYLES[row.approvalStatus]}`}>{row.approvalStatus}</td>
-                <td className="px-4 py-2 text-slate-500">{new Date(row.createdAt).toLocaleDateString()}</td>
-                <td className="px-4 py-2">
-                  <div className="flex gap-3">
-                    {row.approvalStatus !== 'APPROVED' && (
-                      <button onClick={() => void setApproval(row, 'APPROVED')} className="text-sm text-emerald-600 hover:underline">
-                        Approve
-                      </button>
-                    )}
-                    {row.approvalStatus !== 'REJECTED' && (
-                      <button onClick={() => void setApproval(row, 'REJECTED')} className="text-sm text-red-600 hover:underline">
-                        Reject
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <DataTable
+        columns={columns}
+        rows={data?.items ?? []}
+        rowKey={(row) => row.id}
+        isLoading={isLoading}
+        emptyState={<EmptyState title="Nothing here" />}
+      />
     </div>
   );
 }

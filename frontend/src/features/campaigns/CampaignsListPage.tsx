@@ -1,4 +1,5 @@
 // Copyright (c) 2026 Arsi India Info. Licensed under the MIT License. See LICENSE and TRADEMARK.md.
+import { Search } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../../components/Button';
@@ -8,6 +9,7 @@ import { EmptyState, ErrorState } from '../../components/EmptyState';
 import { StateBadge } from '../../components/StateBadge';
 import type { CampaignStatus, CampaignSummary } from '../../types/domain';
 import { useCampaigns } from './api';
+import { CampaignStatusIcon } from './CampaignStatusIcon';
 
 const STATUS_FILTERS: (CampaignStatus | 'ALL')[] = ['ALL', 'DRAFT', 'SCHEDULED', 'SENDING', 'PAUSED', 'SENT', 'CANCELLED'];
 
@@ -24,7 +26,17 @@ export function CampaignsListPage() {
   });
 
   const columns: Column<CampaignSummary>[] = [
-    { header: 'Name', render: (c) => <Link to={`/campaigns/${c.id}`} className="font-medium text-indigo-600 hover:underline">{c.name}</Link> },
+    {
+      header: 'Name',
+      render: (c) => (
+        <div className="flex items-center gap-3">
+          <CampaignStatusIcon status={c.status} />
+          <Link to={`/campaigns/${c.id}`} className="font-medium text-indigo-600 hover:underline">
+            {c.name}
+          </Link>
+        </div>
+      ),
+    },
     { header: 'Status', render: (c) => <StateBadge status={c.status} live={c.status === 'SENDING'} /> },
     { header: 'Date', render: (c) => (c.sentAt ? new Date(c.sentAt).toLocaleDateString() : c.scheduledAt ? new Date(c.scheduledAt).toLocaleDateString() : '—') },
     { header: 'Open rate', render: (c) => (c.status === 'SENT' || c.status === 'SENDING' ? `${c.openRate}%` : '—') },
@@ -52,14 +64,14 @@ export function CampaignsListPage() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-xl font-semibold text-slate-900">Campaigns</h1>
-        <Link to="/campaigns/new">
-          <Button>New campaign</Button>
+        <Link to="/campaigns/new" className="sm:shrink-0">
+          <Button className="w-full sm:w-auto">New campaign</Button>
         </Link>
       </div>
 
-      <div className="mb-4 flex flex-wrap items-center gap-3">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <div className="flex flex-wrap gap-1.5">
           {STATUS_FILTERS.map((s) => (
             <button
@@ -76,15 +88,18 @@ export function CampaignsListPage() {
             </button>
           ))}
         </div>
-        <input
-          placeholder="Search campaigns…"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          className="ml-auto w-full max-w-xs rounded-md border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-indigo-500"
-        />
+        <div className="relative sm:ml-auto sm:w-full sm:max-w-xs">
+          <Search size={15} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            placeholder="Search campaigns…"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            className="w-full rounded-md border border-slate-300 py-1.5 pl-8 pr-3 text-sm outline-none focus:border-indigo-500"
+          />
+        </div>
       </div>
 
       <DataTable

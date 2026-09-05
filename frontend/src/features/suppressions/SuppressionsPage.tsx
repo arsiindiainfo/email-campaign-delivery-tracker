@@ -66,9 +66,9 @@ export function SuppressionsPage() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-xl font-semibold text-slate-900">Suppression list</h1>
-        <Button onClick={() => setAdding(true)}>Suppress an address</Button>
+        <Button className="w-full sm:w-auto" onClick={() => setAdding(true)}>Suppress an address</Button>
       </div>
 
       {adding && (
@@ -76,16 +76,18 @@ export function SuppressionsPage() {
           <p className="mb-3 text-sm text-amber-700">
             This will silently exclude this address from all future sends.
           </p>
-          <div className="flex items-end gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <div className="flex-1">
               <TextField label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} error={addError ?? undefined} />
             </div>
-            <Button onClick={() => void handleAdd()} isLoading={addSuppression.isPending}>
-              Suppress
-            </Button>
-            <Button variant="secondary" onClick={() => setAdding(false)}>
-              Cancel
-            </Button>
+            <div className="flex gap-3">
+              <Button className="flex-1 sm:flex-none" onClick={() => void handleAdd()} isLoading={addSuppression.isPending}>
+                Suppress
+              </Button>
+              <Button className="flex-1 sm:flex-none" variant="secondary" onClick={() => setAdding(false)}>
+                Cancel
+              </Button>
+            </div>
           </div>
         </div>
       )}

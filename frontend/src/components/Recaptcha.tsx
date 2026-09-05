@@ -46,14 +46,14 @@ export function Recaptcha({ onChange }: RecaptchaProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetRendered = useRef(false);
   const onChangeRef = useRef(onChange);
-  onChangeRef.current = onChange;
-  const [loadError, setLoadError] = useState(false);
+  const [scriptLoadError, setScriptLoadError] = useState(false);
 
   useEffect(() => {
-    if (!SITE_KEY) {
-      setLoadError(true);
-      return;
-    }
+    onChangeRef.current = onChange;
+  });
+
+  useEffect(() => {
+    if (!SITE_KEY) return;
     let cancelled = false;
     loadRecaptchaScript()
       .then(() => {
@@ -65,13 +65,13 @@ export function Recaptcha({ onChange }: RecaptchaProps) {
           'expired-callback': () => onChangeRef.current(null),
         });
       })
-      .catch(() => setLoadError(true));
+      .catch(() => setScriptLoadError(true));
     return () => {
       cancelled = true;
     };
   }, []);
 
-  if (loadError) {
+  if (!SITE_KEY || scriptLoadError) {
     return <p className="text-xs text-red-600">reCAPTCHA failed to load. Check your connection and reload.</p>;
   }
   return <div ref={containerRef} />;

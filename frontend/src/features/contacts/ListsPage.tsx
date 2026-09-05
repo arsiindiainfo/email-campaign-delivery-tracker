@@ -67,22 +67,24 @@ export function ListsPage() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-xl font-semibold text-slate-900">Recipient lists</h1>
-        <Button onClick={() => setCreating(true)}>New list</Button>
+        <Button className="w-full sm:w-auto" onClick={() => setCreating(true)}>New list</Button>
       </div>
 
       {creating && (
-        <div className="mb-4 flex items-end gap-3 rounded-md border border-slate-200 bg-white p-4">
+        <div className="mb-4 flex flex-col gap-3 rounded-md border border-slate-200 bg-white p-4 sm:flex-row sm:items-end">
           <div className="flex-1">
             <TextField label="List name" value={newName} onChange={(e) => setNewName(e.target.value)} error={createError ?? undefined} />
           </div>
-          <Button onClick={() => void handleCreate()} isLoading={createList.isPending}>
-            Create
-          </Button>
-          <Button variant="secondary" onClick={() => setCreating(false)}>
-            Cancel
-          </Button>
+          <div className="flex gap-3">
+            <Button className="flex-1 sm:flex-none" onClick={() => void handleCreate()} isLoading={createList.isPending}>
+              Create
+            </Button>
+            <Button className="flex-1 sm:flex-none" variant="secondary" onClick={() => setCreating(false)}>
+              Cancel
+            </Button>
+          </div>
         </div>
       )}
 

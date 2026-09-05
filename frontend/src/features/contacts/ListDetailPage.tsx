@@ -121,16 +121,18 @@ export function ListDetailPage() {
       )}
 
       {showAddForm && (
-        <div className="mb-4 flex items-end gap-3 rounded-md border border-slate-200 bg-white p-4">
+        <div className="mb-4 flex flex-col gap-3 rounded-md border border-slate-200 bg-white p-4 sm:flex-row sm:items-end">
           <div className="flex-1">
             <TextField label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} error={addError ?? undefined} />
           </div>
-          <Button onClick={() => void handleAdd()} isLoading={addContact.isPending}>
-            Add
-          </Button>
-          <Button variant="secondary" onClick={() => setShowAddForm(false)}>
-            Cancel
-          </Button>
+          <div className="flex gap-3">
+            <Button className="flex-1 sm:flex-none" onClick={() => void handleAdd()} isLoading={addContact.isPending}>
+              Add
+            </Button>
+            <Button className="flex-1 sm:flex-none" variant="secondary" onClick={() => setShowAddForm(false)}>
+              Cancel
+            </Button>
+          </div>
         </div>
       )}
 

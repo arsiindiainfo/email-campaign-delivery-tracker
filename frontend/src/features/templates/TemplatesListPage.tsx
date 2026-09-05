@@ -55,10 +55,10 @@ export function TemplatesListPage() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-xl font-semibold text-slate-900">Templates</h1>
-        <Link to="/templates/new">
-          <Button>New template</Button>
+        <Link to="/templates/new" className="sm:shrink-0">
+          <Button className="w-full sm:w-auto">New template</Button>
         </Link>
       </div>
       <input
@@ -68,7 +68,7 @@ export function TemplatesListPage() {
           setSearch(e.target.value);
           setPage(1);
         }}
-        className="mb-4 w-full max-w-xs rounded-md border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-indigo-500"
+        className="mb-4 w-full rounded-md border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-indigo-500 sm:max-w-xs"
       />
       <DataTable
         columns={columns}

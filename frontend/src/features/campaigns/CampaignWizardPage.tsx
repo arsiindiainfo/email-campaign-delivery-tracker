@@ -1,9 +1,11 @@
 // Copyright (c) 2026 Arsi India Info. Licensed under the MIT License. See LICENSE and TRADEMARK.md.
+import { Lightbulb } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../../components/Button';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { SelectField } from '../../components/SelectField';
+import { Stepper } from '../../components/Stepper';
 import { TextField } from '../../components/TextField';
 import { useToast } from '../../components/ToastContext';
 import { ApiError } from '../../lib/apiClient';
@@ -135,23 +137,11 @@ export function CampaignWizardPage({ existing }: { existing?: Campaign }) {
     <div className="mx-auto max-w-3xl">
       <h1 className="mb-4 text-xl font-semibold text-slate-900">{existing ? `Edit "${existing.name}"` : 'New campaign'}</h1>
 
-      <div className="mb-6 flex gap-2">
-        {STEPS.map((label, i) => (
-          <button
-            key={label}
-            onClick={() => i < step && setStep(i)}
-            className={`flex-1 rounded-md px-2 py-1.5 text-center text-xs font-medium ${
-              i === step ? 'bg-indigo-600 text-white' : i < step ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-400'
-            }`}
-          >
-            {i + 1}. {label}
-          </button>
-        ))}
-      </div>
+      <Stepper steps={STEPS} currentStep={step} onStepClick={(i) => i < step && setStep(i)} />
 
       {error && <div className="mb-4 rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
 
-      <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
         {step === 0 && (
           <div className="space-y-4">
             <TextField label="Campaign name" required value={name} onChange={(e) => setName(e.target.value)} />
@@ -222,7 +212,7 @@ export function CampaignWizardPage({ existing }: { existing?: Campaign }) {
               <p>Lists: {listIds.length} selected — ~{recipientCount.toLocaleString()} recipients</p>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-4">
               <label className="flex items-center gap-2 text-sm">
                 <input type="radio" checked={scheduleMode === 'now'} onChange={() => setScheduleMode('now')} /> Send now
               </label>
@@ -248,24 +238,24 @@ export function CampaignWizardPage({ existing }: { existing?: Campaign }) {
         )}
       </div>
 
-      <div className="mt-4 flex justify-between">
-        <div>
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="order-2 sm:order-1">
           {step > 0 && (
-            <Button variant="secondary" onClick={() => setStep((s) => s - 1)}>
+            <Button variant="secondary" className="w-full sm:w-auto" onClick={() => setStep((s) => s - 1)}>
               Back
             </Button>
           )}
         </div>
-        <div className="flex gap-2">
-          <Button variant="ghost" onClick={() => void handleSaveDraft()} isLoading={isSaving}>
+        <div className="order-1 flex gap-2 sm:order-2">
+          <Button variant="ghost" className="flex-1 sm:flex-none" onClick={() => void handleSaveDraft()} isLoading={isSaving}>
             Save draft
           </Button>
           {step < STEPS.length - 1 ? (
-            <Button disabled={!canProceed} onClick={() => setStep((s) => s + 1)}>
+            <Button className="flex-1 sm:flex-none" disabled={!canProceed} onClick={() => setStep((s) => s + 1)}>
               Next
             </Button>
           ) : (
-            <Button disabled={!canProceed} onClick={() => setShowConfirm(true)}>
+            <Button className="flex-1 sm:flex-none" disabled={!canProceed} onClick={() => setShowConfirm(true)}>
               Confirm & schedule
             </Button>
           )}
@@ -281,6 +271,11 @@ export function CampaignWizardPage({ existing }: { existing?: Campaign }) {
         onConfirm={() => void handleConfirmSchedule()}
         onCancel={() => setShowConfirm(false)}
       />
+
+      <div className="mt-4 flex items-start gap-2 rounded-md border border-indigo-100 bg-indigo-50 px-3 py-2.5 text-sm text-indigo-800">
+        <Lightbulb size={16} className="mt-0.5 shrink-0" />
+        <span>Tip: You can save this campaign as a draft and continue later.</span>
+      </div>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 // Copyright (c) 2026 Arsi India Info. Licensed under the MIT License. See LICENSE and TRADEMARK.md.
+import { ArrowRight, MailOpen, MousePointerClick, Send, Undo2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '../../components/Button';
 import type { Column } from '../../components/DataTable';
@@ -6,11 +7,14 @@ import { DataTable } from '../../components/DataTable';
 import { EmptyState, ErrorState } from '../../components/EmptyState';
 import { StateBadge } from '../../components/StateBadge';
 import { StatCard } from '../../components/StatCard';
+import { useAuth } from '../auth/AuthContext';
 import { useAnalyticsOverview } from '../analytics/api';
 import { useCampaigns } from '../campaigns/api';
+import { CampaignStatusIcon } from '../campaigns/CampaignStatusIcon';
 import type { CampaignSummary } from '../../types/domain';
 
 export function DashboardPage() {
+  const { user } = useAuth();
   const { data: overview, isLoading: overviewLoading, isError: overviewError, refetch: refetchOverview } = useAnalyticsOverview();
   const { data: recentCampaigns, isLoading: campaignsLoading, isError: campaignsError, refetch: refetchCampaigns } = useCampaigns({
     limit: 5,
@@ -18,8 +22,20 @@ export function DashboardPage() {
     direction: 'desc',
   });
 
+  const firstName = user?.name.trim().split(/\s+/)[0];
+
   const columns: Column<CampaignSummary>[] = [
-    { header: 'Name', render: (c) => <Link to={`/campaigns/${c.id}`} className="font-medium text-indigo-600 hover:underline">{c.name}</Link> },
+    {
+      header: 'Name',
+      render: (c) => (
+        <div className="flex items-center gap-3">
+          <CampaignStatusIcon status={c.status} />
+          <Link to={`/campaigns/${c.id}`} className="font-medium text-indigo-600 hover:underline">
+            {c.name}
+          </Link>
+        </div>
+      ),
+    },
     { header: 'Status', render: (c) => <StateBadge status={c.status} live={c.status === 'SENDING'} /> },
     { header: 'Open rate', render: (c) => (c.status === 'SENT' || c.status === 'SENDING' ? `${c.openRate}%` : '—') },
   ];
@@ -28,10 +44,17 @@ export function DashboardPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-slate-900">Dashboard</h1>
-        <Link to="/campaigns/new">
-          <Button>+ New campaign</Button>
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-slate-900">Dashboard</h1>
+          {firstName && (
+            <p className="mt-0.5 text-sm text-slate-500">
+              Welcome back, {firstName}! Here&rsquo;s what&rsquo;s happening with your campaigns.
+            </p>
+          )}
+        </div>
+        <Link to="/campaigns/new" className="sm:shrink-0">
+          <Button className="w-full sm:w-auto">+ New campaign</Button>
         </Link>
       </div>
 
@@ -39,15 +62,57 @@ export function DashboardPage() {
         <ErrorState message="Failed to load analytics" onRetry={() => void refetchOverview()} />
       ) : (
         <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-          <StatCard label="Sent" value={overviewLoading ? null : (overview?.totalSent ?? 0)} loading={overviewLoading} />
-          <StatCard label="Delivery rate" value={overviewLoading ? null : overview?.deliveryRate ?? 0} suffix="%" loading={overviewLoading} />
-          <StatCard label="Open rate" value={overviewLoading ? null : overview?.openRate ?? 0} suffix="%" loading={overviewLoading} />
-          <StatCard label="Click rate" value={overviewLoading ? null : overview?.clickRate ?? 0} suffix="%" loading={overviewLoading} />
-          <StatCard label="Bounce rate" value={overviewLoading ? null : overview?.bounceRate ?? 0} suffix="%" loading={overviewLoading} />
+          <StatCard
+            label="Sent"
+            value={overviewLoading ? null : (overview?.totalSent ?? 0)}
+            loading={overviewLoading}
+            icon={Send}
+            tone="indigo"
+          />
+          <StatCard
+            label="Delivery rate"
+            value={overviewLoading ? null : overview?.deliveryRate ?? 0}
+            suffix="%"
+            loading={overviewLoading}
+            icon={MailOpen}
+            tone="green"
+          />
+          <StatCard
+            label="Open rate"
+            value={overviewLoading ? null : overview?.openRate ?? 0}
+            suffix="%"
+            loading={overviewLoading}
+            icon={MailOpen}
+            tone="amber"
+          />
+          <StatCard
+            label="Click rate"
+            value={overviewLoading ? null : overview?.clickRate ?? 0}
+            suffix="%"
+            loading={overviewLoading}
+            icon={MousePointerClick}
+            tone="blue"
+          />
+          <StatCard
+            label="Bounce rate"
+            value={overviewLoading ? null : overview?.bounceRate ?? 0}
+            suffix="%"
+            loading={overviewLoading}
+            icon={Undo2}
+            tone="red"
+          />
         </div>
       )}
 
-      <h2 className="mb-2 text-sm font-semibold text-slate-700">Recent campaigns</h2>
+      <div className="mb-2 flex items-center justify-between">
+        <h2 className="text-sm font-semibold text-slate-700">Recent campaigns</h2>
+        {!hasNoCampaigns && (
+          <Link to="/campaigns" className="flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-800">
+            View all campaigns
+            <ArrowRight size={14} />
+          </Link>
+        )}
+      </div>
       {campaignsError ? (
         <ErrorState message="Failed to load campaigns" onRetry={() => void refetchCampaigns()} />
       ) : hasNoCampaigns ? (

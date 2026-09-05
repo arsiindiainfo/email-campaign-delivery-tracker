@@ -55,12 +55,12 @@ export function CampaignDetailPage({ campaign }: { campaign: Campaign }) {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-slate-900">{campaign.name}</h1>
-          <p className="text-sm text-slate-500">{campaign.subject}</p>
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="truncate text-xl font-semibold text-slate-900">{campaign.name}</h1>
+          <p className="truncate text-sm text-slate-500">{campaign.subject}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <StateBadge status={campaign.status} live={isLive} />
           {campaign.status === 'SENDING' && (
             <Button variant="secondary" size="sm" onClick={() => void handleAction('pause')} isLoading={pauseCampaign.isPending}>
