@@ -21,9 +21,9 @@
                 "sqs:GetQueueUrl"
             ],
             "Resource": [
-                "arn:aws:sqs:ap-south-1:952151418940:email-campaign-send-queue",
-                "arn:aws:sqs:ap-south-1:952151418940:email-campaign-webhook-queue",
-                "arn:aws:sqs:ap-south-1:952151418940:email-campaign-import-queue"
+                "arn:aws:sqs:ap-south-2:952151418940:email-campaign-send-queue",
+                "arn:aws:sqs:ap-south-2:952151418940:email-campaign-webhook-queue",
+                "arn:aws:sqs:ap-south-2:952151418940:email-campaign-import-queue"
             ]
         },
         {
@@ -33,7 +33,7 @@
                 "ses:SendEmail",
                 "ses:SendRawEmail"
             ],
-            "Resource": "arn:aws:ses:ap-south-1:952151418940:identity/arsiindiainfo.com"
+            "Resource": "arn:aws:ses:ap-south-2:952151418940:identity/arsiindiainfo.com"
         }
     ]
 }
