@@ -1,7 +1,9 @@
 // Copyright (c) 2026 Arsi India Info. Licensed under the MIT License. See LICENSE and TRADEMARK.md.
 import {
   ConflictException,
+  Inject,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -14,6 +16,8 @@ import { RecaptchaService } from '../../common/recaptcha/recaptcha.service';
 import { RecaptchaVerificationFailedException } from '../../shared/exceptions/domain.exception';
 import { OrganizationResponseDto } from '../organizations/dto/organization-response.dto';
 import { OrganizationsService } from '../organizations/organizations.service';
+import { EMAIL_PROVIDER } from '../sending/email-provider.interface';
+import type { EmailProvider } from '../sending/email-provider.interface';
 import { UserResponseDto } from '../users/dto/user-response.dto';
 import { UsersRepository } from '../users/users.repository';
 import { UsersService } from '../users/users.service';
@@ -24,11 +28,21 @@ import {
   AuthenticatedUser,
   JwtPayload,
 } from './interfaces/authenticated-user.interface';
+import {
+  buildOwnerNotificationEmail,
+  buildWelcomeAutoresponderEmail,
+  SYSTEM_FROM_EMAIL,
+  SYSTEM_FROM_NAME,
+} from './registration-mailer';
+
+const DEMO_OWNER_NOTIFICATION_EMAIL = 'arsi.india.info@gmail.com';
 
 const BCRYPT_COST = 12;
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     @InjectConnection() private readonly connection: Connection,
     private readonly jwtService: JwtService,
@@ -37,17 +51,21 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly usersRepository: UsersRepository,
     private readonly recaptchaService: RecaptchaService,
+    @Inject(EMAIL_PROVIDER) private readonly emailProvider: EmailProvider,
   ) {}
 
   /**
-   * `skipRecaptcha` exists only for trusted server-side callers that never go
-   * through the public HTTP controller (e.g. `database/seed.ts`) — it is not
-   * reachable from any request DTO, so it can't be used to bypass the check
-   * from outside.
+   * `skipRecaptcha`/`skipNotificationEmails` exist only for trusted
+   * server-side callers that never go through the public HTTP controller
+   * (e.g. `database/seed.ts`) — neither is reachable from any request DTO,
+   * so they can't be used to bypass anything from outside.
    */
   async register(
     dto: RegisterDto,
-    { skipRecaptcha = false }: { skipRecaptcha?: boolean } = {},
+    {
+      skipRecaptcha = false,
+      skipNotificationEmails = false,
+    }: { skipRecaptcha?: boolean; skipNotificationEmails?: boolean } = {},
   ): Promise<AuthResponseDto> {
     if (!skipRecaptcha && !(await this.recaptchaService.verify(dto.recaptchaToken))) {
       throw new RecaptchaVerificationFailedException();
@@ -80,6 +98,10 @@ export class AuthService {
         role: user.role,
       });
       await this.persistRefreshToken(user.id as string, tokens.refreshToken);
+
+      if (!skipNotificationEmails) {
+        await this.sendRegistrationEmails(dto.name, dto.email, organization.name);
+      }
 
       return {
         user: UserResponseDto.fromDocument(user),
@@ -177,6 +199,37 @@ export class AuthService {
       }),
     ]);
     return { accessToken, refreshToken };
+  }
+
+  /** Best-effort: a transient email failure must never fail a registration that already succeeded. */
+  private async sendRegistrationEmails(
+    name: string,
+    email: string,
+    organizationName: string,
+  ): Promise<void> {
+    try {
+      await this.emailProvider.send({
+        to: DEMO_OWNER_NOTIFICATION_EMAIL,
+        fromName: SYSTEM_FROM_NAME,
+        fromEmail: SYSTEM_FROM_EMAIL,
+        subject: 'New demo registration',
+        html: buildOwnerNotificationEmail({ name, email, organizationName }),
+      });
+    } catch (error) {
+      this.logger.error('Failed to send owner registration notification', error as Error);
+    }
+
+    try {
+      await this.emailProvider.send({
+        to: email,
+        fromName: SYSTEM_FROM_NAME,
+        fromEmail: SYSTEM_FROM_EMAIL,
+        subject: 'Welcome — please read: demo sending limits',
+        html: buildWelcomeAutoresponderEmail({ name }),
+      });
+    } catch (error) {
+      this.logger.error('Failed to send welcome autoresponder', error as Error);
+    }
   }
 
   private async persistRefreshToken(

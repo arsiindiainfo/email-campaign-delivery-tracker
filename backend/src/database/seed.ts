@@ -68,11 +68,11 @@ async function seed() {
     {
       organizationName: 'NovaMail Retail Co.',
       name: 'Asha Rao',
-      email: 'asha@novamail.demo',
-      password: 'Str0ngPass!23',
+      email: 'arsi.india.info@gmail.com',
+      password: 'Rajib@1984',
       recaptchaToken: 'seed-bypass',
     },
-    { skipRecaptcha: true },
+    { skipRecaptcha: true, skipNotificationEmails: true },
   );
   logger.log(`Created organization ${organization.name} (${organization.id})`);
 
@@ -247,7 +247,7 @@ async function seed() {
   logger.log(
     `Campaign "${sentCampaign.name}" is SENT with a simulated open/click/bounce funnel.`,
   );
-  logger.log('Seed complete. Sign in with asha@novamail.demo / Str0ngPass!23');
+  logger.log('Seed complete. Sign in with arsi.india.info@gmail.com / Rajib@1984');
 
   await app.close();
 }

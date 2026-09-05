@@ -17,9 +17,9 @@ const SEED_DOMAIN = '@novamail.demo';
 // These caps keep the blast radius small regardless of what a self-registered
 // visitor tries to do — see the conversation notes on why each limit exists.
 const MAX_RECIPIENTS_PER_ACTION = 5;
-const MAX_SENDS_PER_ROLLING_WINDOW = 5;
+const MAX_SENDS_PER_ROLLING_WINDOW = 20;
 const ROLLING_WINDOW_MS = 30 * 60 * 1000;
-const MAX_SENDS_LIFETIME_PER_ORG = 20;
+const MAX_SENDS_LIFETIME_PER_ORG = 200;
 
 @Injectable()
 export class DemoSendGuardService {

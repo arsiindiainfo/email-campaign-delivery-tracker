@@ -15,7 +15,7 @@ cd backend && npm run seed
 The seed script creates the fictional **NovaMail Retail Co.** organization
 with:
 
-- Owner login: `asha@novamail.demo` / `Str0ngPass!23`
+- Owner login: seeded demo account (credentials are not published in this repo)
 - Two more team members (a marketer, an analyst)
 - A verified sender domain (`novamail.demo`, demo-simulated verification)
 - One contact list, "All Subscribers", with 8 synthetic `*.demo` contacts

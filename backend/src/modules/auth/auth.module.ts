@@ -6,6 +6,7 @@ import { PassportModule } from '@nestjs/passport';
 import { AppConfig } from '../../config/configuration';
 import { RecaptchaService } from '../../common/recaptcha/recaptcha.service';
 import { OrganizationsModule } from '../organizations/organizations.module';
+import { SendingModule } from '../sending/sending.module';
 import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
@@ -25,6 +26,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     }),
     OrganizationsModule,
     UsersModule,
+    SendingModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, RecaptchaService],

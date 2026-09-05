@@ -87,7 +87,7 @@ npm run seed   # loads the fictional "NovaMail Retail Co." demo org
 
 Then visit:
 
-- **App**: http://localhost:5173 — sign in with `asha@novamail.demo` / `Str0ngPass!23`
+- **App**: http://localhost:5173 — sign in with the credentials the seed script logs to the console
 - **API docs (Swagger)**: http://localhost:3000/api/docs
 - **Mailhog inbox**: http://localhost:8025 — every "sent" email lands here
 

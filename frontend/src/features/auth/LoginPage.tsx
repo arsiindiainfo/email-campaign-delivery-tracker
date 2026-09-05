@@ -18,8 +18,6 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-const DEMO_CREDENTIALS = { email: 'asha@novamail.demo', password: 'Str0ngPass!23' };
-
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -28,14 +26,8 @@ export function LoginPage() {
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
-
-  const fillDemoCredentials = () => {
-    setValue('email', DEMO_CREDENTIALS.email, { shouldValidate: true });
-    setValue('password', DEMO_CREDENTIALS.password, { shouldValidate: true });
-  };
 
   const onSubmit = async (values: FormValues) => {
     setFormError(null);
@@ -77,16 +69,6 @@ export function LoginPage() {
             Sign in
           </Button>
         </form>
-
-        <button
-          type="button"
-          onClick={fillDemoCredentials}
-          className="mt-4 w-full rounded-md border border-dashed border-indigo-200 bg-indigo-50 px-3 py-2 text-left text-xs text-indigo-700 transition-colors hover:bg-indigo-100"
-        >
-          <span className="font-medium">Use demo login</span>
-          <br />
-          {DEMO_CREDENTIALS.email} / {DEMO_CREDENTIALS.password}
-        </button>
 
         <p className="mt-4 text-center text-sm text-slate-500">
           No account?{' '}
