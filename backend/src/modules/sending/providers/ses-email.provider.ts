@@ -12,9 +12,12 @@ import {
 @Injectable()
 export class SesEmailProvider implements EmailProvider {
   private readonly client: SESClient;
+  private readonly configurationSet: string;
 
   constructor(configService: ConfigService<AppConfig>) {
     const aws = configService.get('aws', { infer: true })!;
+    const ses = configService.get('ses', { infer: true })!;
+    this.configurationSet = ses.configurationSet;
     this.client = new SESClient({
       region: aws.region,
       endpoint: aws.endpoint,
@@ -37,6 +40,10 @@ export class SesEmailProvider implements EmailProvider {
           Subject: { Data: params.subject },
           Body: { Html: { Data: params.html } },
         },
+        // Without this, SES sends outside the configuration set and never
+        // publishes bounce/complaint/delivery events to the SNS→SQS
+        // webhook pipeline — tracking silently stops working (§ SES setup).
+        ConfigurationSetName: this.configurationSet || undefined,
       }),
     );
     return { providerMessageId: result.MessageId ?? '' };

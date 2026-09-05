@@ -29,6 +29,7 @@ export const envValidationSchema = Joi.object({
   AWS_ENDPOINT: Joi.string().uri().allow('').default(''),
 
   SES_FROM_VERIFIED_DOMAINS: Joi.string().default('novamail.demo'),
+  SES_CONFIGURATION_SET: Joi.string().allow('').default(''),
   SNS_WEBHOOK_SIGNING_SECRET: Joi.string().default(
     'demo-webhook-signing-secret',
   ),

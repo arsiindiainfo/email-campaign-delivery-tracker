@@ -25,6 +25,7 @@ export interface AppConfig {
   };
   ses: {
     verifiedDomains: string[];
+    configurationSet: string;
   };
   sns: {
     webhookSigningSecret: string;
@@ -79,6 +80,7 @@ export default (): AppConfig => ({
     verifiedDomains: (process.env.SES_FROM_VERIFIED_DOMAINS ?? 'novamail.demo')
       .split(',')
       .map((s) => s.trim()),
+    configurationSet: process.env.SES_CONFIGURATION_SET ?? '',
   },
   sns: {
     webhookSigningSecret: process.env.SNS_WEBHOOK_SIGNING_SECRET ?? '',
