@@ -82,7 +82,7 @@ export function Footer() {
         </div>
 
         <div className="max-w-sm py-4 lg:px-6">
-          <h3 className="text-base font-bold text-slate-900">Need a custom email campaign platform for your business?</h3>
+          <h3 className="text-base font-bold text-slate-900">Need a custom solution for your business?</h3>
           <p className="mt-1 text-sm text-slate-500">
             This demo shows what we can build for you. Let&apos;s build it together &mdash; custom development and
             ongoing support available.

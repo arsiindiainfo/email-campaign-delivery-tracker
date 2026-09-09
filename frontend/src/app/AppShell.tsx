@@ -96,7 +96,7 @@ export function AppShell() {
         >
           <div className="flex items-center justify-between border-b border-slate-200 px-4 py-4">
             <div>
-              <img src={logoFull} alt="Arsi India Info" className="mb-2 h-6 w-auto" />
+              <img src={logoFull} alt="Arsi India Info" className="mb-2 h-12 w-auto" />
               <div className="text-sm font-semibold text-slate-900">{organization?.name ?? 'Email Campaign Tracker'}</div>
             </div>
             <button
