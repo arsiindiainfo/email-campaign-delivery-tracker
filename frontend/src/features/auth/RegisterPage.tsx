@@ -60,7 +60,7 @@ export function RegisterPage() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-8">
         <div className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-6 text-center shadow-sm">
-          <img src={logoFull} alt="Arsi India Info" className="mx-auto mb-4 h-10 w-auto" />
+          <img src={logoFull} alt="Arsi India Info" className="mx-auto mb-4 h-16 w-auto" />
           <h1 className="text-lg font-semibold text-slate-900">Check your email</h1>
           <p className="mt-2 text-sm text-slate-500">
             We sent a verification link to your inbox. Click it to activate your account, then sign in.
@@ -76,7 +76,7 @@ export function RegisterPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-8">
       <div className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-        <img src={logoFull} alt="Arsi India Info" className="mx-auto mb-4 h-10 w-auto" />
+        <img src={logoFull} alt="Arsi India Info" className="mx-auto mb-4 h-16 w-auto" />
         <h1 className="text-lg font-semibold text-slate-900">Create your organization</h1>
         <p className="mt-1 text-sm text-slate-500">Start tracking campaign delivery in minutes</p>
 

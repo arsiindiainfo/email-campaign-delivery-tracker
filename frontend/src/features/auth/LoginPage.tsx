@@ -50,7 +50,7 @@ export function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
       <div className="w-full max-w-sm rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-        <img src={logoFull} alt="Arsi India Info" className="mx-auto mb-4 h-10 w-auto" />
+        <img src={logoFull} alt="Arsi India Info" className="mx-auto mb-4 h-16 w-auto" />
         <h1 className="text-lg font-semibold text-slate-900">Sign in</h1>
         <p className="mt-1 text-sm text-slate-500">Email Campaign & Delivery Tracking Platform</p>
 
