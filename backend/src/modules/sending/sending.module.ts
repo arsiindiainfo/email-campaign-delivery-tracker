@@ -3,7 +3,8 @@ import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppConfig } from '../../config/configuration';
 import { QueueModule } from '../queue/queue.module';
-import { EMAIL_PROVIDER } from './email-provider.interface';
+import { EMAIL_PROVIDER, SYSTEM_EMAIL_PROVIDER } from './email-provider.interface';
+import { ResendEmailProvider } from './providers/resend-email.provider';
 import { SesEmailProvider } from './providers/ses-email.provider';
 import { SmtpEmailProvider } from './providers/smtp-email.provider';
 import { SendQueueProducer } from './send-queue.producer';
@@ -13,8 +14,12 @@ import { SendQueueProducer } from './send-queue.producer';
   providers: [
     SmtpEmailProvider,
     SesEmailProvider,
+    ResendEmailProvider,
     SendQueueProducer,
     {
+      // Real customer campaign sends -- must stay SES/SMTP only; the
+      // SNS -> SQS bounce/complaint webhook pipeline only understands SES's
+      // event format.
       provide: EMAIL_PROVIDER,
       inject: [ConfigService, SmtpEmailProvider, SesEmailProvider],
       useFactory: (
@@ -33,7 +38,23 @@ import { SendQueueProducer } from './send-queue.producer';
         return provider === 'ses' ? ses : smtp;
       },
     },
+    {
+      // The system's own transactional email (registration verification,
+      // admin notification) -- independent of the campaign provider above.
+      // Resend in production (demo1.arsiindiainfo.com is a verified,
+      // non-sandboxed sending identity); Mailhog everywhere else.
+      provide: SYSTEM_EMAIL_PROVIDER,
+      inject: [ConfigService, SmtpEmailProvider, ResendEmailProvider],
+      useFactory: (
+        configService: ConfigService<AppConfig>,
+        smtp: SmtpEmailProvider,
+        resend: ResendEmailProvider,
+      ) => {
+        const nodeEnv = configService.get('nodeEnv', { infer: true });
+        return nodeEnv === 'production' ? resend : smtp;
+      },
+    },
   ],
-  exports: [EMAIL_PROVIDER, SendQueueProducer],
+  exports: [EMAIL_PROVIDER, SYSTEM_EMAIL_PROVIDER, SendQueueProducer],
 })
 export class SendingModule {}

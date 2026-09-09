@@ -22,7 +22,7 @@ import {
 } from '../../shared/exceptions/domain.exception';
 import { OrganizationResponseDto } from '../organizations/dto/organization-response.dto';
 import { OrganizationsService } from '../organizations/organizations.service';
-import { EMAIL_PROVIDER } from '../sending/email-provider.interface';
+import { SYSTEM_EMAIL_PROVIDER } from '../sending/email-provider.interface';
 import type { EmailProvider } from '../sending/email-provider.interface';
 import { UserResponseDto } from '../users/dto/user-response.dto';
 import { UsersRepository } from '../users/users.repository';
@@ -59,7 +59,7 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly usersRepository: UsersRepository,
     private readonly recaptchaService: RecaptchaService,
-    @Inject(EMAIL_PROVIDER) private readonly emailProvider: EmailProvider,
+    @Inject(SYSTEM_EMAIL_PROVIDER) private readonly emailProvider: EmailProvider,
   ) {}
 
   /**

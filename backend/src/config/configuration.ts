@@ -13,7 +13,7 @@ export interface AppConfig {
   publicBaseUrl: string;
   appBaseUrl: string;
   email: {
-    provider: 'smtp' | 'ses';
+    provider: 'smtp' | 'ses' | 'resend';
     smtpHost: string;
     smtpPort: number;
   };
@@ -26,6 +26,9 @@ export interface AppConfig {
   ses: {
     verifiedDomains: string[];
     configurationSet: string;
+  };
+  resend: {
+    apiKey: string;
   };
   sns: {
     webhookSigningSecret: string;
@@ -69,7 +72,7 @@ export default (): AppConfig => ({
   publicBaseUrl: process.env.PUBLIC_BASE_URL ?? 'http://localhost:3000',
   appBaseUrl: process.env.APP_BASE_URL ?? 'http://localhost:5173',
   email: {
-    provider: (process.env.EMAIL_PROVIDER as 'smtp' | 'ses') ?? 'smtp',
+    provider: (process.env.EMAIL_PROVIDER as 'smtp' | 'ses' | 'resend') ?? 'smtp',
     smtpHost: process.env.SMTP_HOST ?? 'localhost',
     smtpPort: parseInt(process.env.SMTP_PORT ?? '1025', 10),
   },
@@ -84,6 +87,9 @@ export default (): AppConfig => ({
       .split(',')
       .map((s) => s.trim()),
     configurationSet: process.env.SES_CONFIGURATION_SET ?? '',
+  },
+  resend: {
+    apiKey: process.env.RESEND_API_KEY ?? '',
   },
   sns: {
     webhookSigningSecret: process.env.SNS_WEBHOOK_SIGNING_SECRET ?? '',

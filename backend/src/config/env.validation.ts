@@ -30,6 +30,10 @@ export const envValidationSchema = Joi.object({
 
   SES_FROM_VERIFIED_DOMAINS: Joi.string().default('novamail.demo'),
   SES_CONFIGURATION_SET: Joi.string().allow('').default(''),
+  // System transactional email (registration verification, admin
+  // notification) — read directly by SYSTEM_EMAIL_PROVIDER, independent of
+  // EMAIL_PROVIDER/SES above, which is for real campaign sends only.
+  RESEND_API_KEY: Joi.string().allow('').default(''),
   SNS_WEBHOOK_SIGNING_SECRET: Joi.string().default(
     'demo-webhook-signing-secret',
   ),

@@ -1,5 +1,11 @@
 // Copyright (c) 2026 Arsi India Info. Licensed under the MIT License. See LICENSE and TRADEMARK.md.
-const SYSTEM_FROM_EMAIL = 'noreply@arsiindiainfo.com';
+// Sent from this app's own subdomain (matching the verify link's domain,
+// demo1.arsiindiainfo.com) rather than the shared arsiindiainfo.com identity
+// -- a from/link domain mismatch is a heavily-weighted phishing signal to
+// spam filters, flagged directly by Resend's own deliverability insights.
+// "verify", not "noreply" -- a no-reply address is itself a mild negative
+// signal (one-way, non-interactive sender).
+const SYSTEM_FROM_EMAIL = 'verify@demo1.arsiindiainfo.com';
 const SYSTEM_FROM_NAME = 'Email Campaign Tracker Demo';
 // Hosted on arsiindiainfo.com's own proven-working HTTPS, independent of
 // this demo's own cert status — reliable regardless of demo1's setup state.

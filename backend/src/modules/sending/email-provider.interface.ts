@@ -19,3 +19,13 @@ export interface EmailProvider {
 }
 
 export const EMAIL_PROVIDER = Symbol('EMAIL_PROVIDER');
+
+/**
+ * The system's own transactional email (registration verification, admin
+ * notification) — deliberately a separate token from EMAIL_PROVIDER, which
+ * campaigns.service.ts uses for real customer campaign sends and must stay
+ * on SES: that's the only provider this app's bounce/complaint tracking
+ * (SNS -> SQS webhook pipeline) knows how to consume. Switching this one
+ * to Resend doesn't touch that.
+ */
+export const SYSTEM_EMAIL_PROVIDER = Symbol('SYSTEM_EMAIL_PROVIDER');
