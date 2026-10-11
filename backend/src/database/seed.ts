@@ -22,6 +22,9 @@ import { TemplatesService } from '../modules/templates/templates.service';
 import { UsersRepository } from '../modules/users/users.repository';
 import { UsersService } from '../modules/users/users.service';
 
+// Capped at 5 (not 8) to match DemoSendGuardService's MAX_RECIPIENTS_PER_ACTION
+// -- the seed schedules real sends against the full "All Subscribers" list,
+// and that quota check fires at schedule-time even for a future scheduledAt.
 const CONTACTS = [
   {
     email: 'priya.sharma@novamail.demo',
@@ -32,9 +35,6 @@ const CONTACTS = [
   { email: 'ananya.iyer@novamail.demo', firstName: 'Ananya', lastName: 'Iyer' },
   { email: 'vikram.rao@novamail.demo', firstName: 'Vikram', lastName: 'Rao' },
   { email: 'sneha.patel@novamail.demo', firstName: 'Sneha', lastName: 'Patel' },
-  { email: 'arjun.mehta@novamail.demo', firstName: 'Arjun', lastName: 'Mehta' },
-  { email: 'divya.nair@novamail.demo', firstName: 'Divya', lastName: 'Nair' },
-  { email: 'karan.singh@novamail.demo', firstName: 'Karan', lastName: 'Singh' },
 ];
 
 const TEMPLATE_HTML = `
